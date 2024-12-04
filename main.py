@@ -2,6 +2,10 @@ import flet as ft
 import psycopg2
 from psycopg2 import sql
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import hashlib
 
 # Configuração do Banco de Dados no Supabase
 DB_CONFIG = {
@@ -11,6 +15,12 @@ DB_CONFIG = {
     "user": "postgres.gfxabtythrcxoyykzcxi",
     "password": "MIp6cj7zla9MlZoR"  # Substitua pelo password real
 }
+
+# Configuração do servidor de e-mail
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_EMAIL = "sala.sensorial.alece@gmail.com"
+SMTP_PASSWORD = "wqckvxkttebescrd"
 
 def init_db():
     try:
@@ -41,6 +51,17 @@ def init_db():
             )
             """
         )
+        # Inserir usuário admin padrão (se não existir)
+        cursor.execute(
+            """
+            INSERT INTO usuarios (nome, email, senha)
+            SELECT 'Admin', 'admin@admin.com', %s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM usuarios WHERE email = 'admin@admin.com'
+            )
+            """,
+            (hashlib.sha256(b"admin123").hexdigest(),)
+        )
         conn.commit()
     except Exception as e:
         print(f"Erro ao inicializar o banco de dados: {e}")
@@ -48,47 +69,95 @@ def init_db():
         cursor.close()
         conn.close()
 
-# Tela de Login
+def enviar_email(destinatario, nome, cpf):
+    assunto = "Sala Sensorial/Alece"
+    mensagem = f"""
+    Olá {nome}, {cpf}
+    Seu atendimento foi feito com sucesso e o prazo para retirada é de 30 dias.
+
+    [Instruções detalhadas]
+    """
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = SMTP_EMAIL
+        msg["To"] = destinatario
+        msg["Subject"] = assunto
+        msg.attach(MIMEText(mensagem, "plain"))
+
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, destinatario, msg.as_string())
+
+        print("E-mail enviado com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
+
+# Função para hashear senha
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Funções de Tela
 def login_view(page):
     def validar_login(e):
-        email = email_field.value
-        senha = senha_field.value
+        email = email_field.value.strip()
+        senha = senha_field.value.strip()
+        senha_hashed = hash_password(senha)  # Gerar o hash da senha
+
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT * FROM usuarios WHERE email = %s AND senha = %s",
-                (email, senha)
+                (email, senha)  # Comparar com o hash armazenado no banco
             )
-            user = cursor.fetchone()
+            user = cursor.fetchone()  # Buscar o usuário
         except Exception as ex:
             print(f"Erro na validação do login: {ex}")
             user = None
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
         if user:
-            page.clean()
+            # Login bem-sucedido
+            page.clean()  # Limpa a tela antes de exibir a nova view
             main_panel(page)
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Login inválido!"))
+            # Credenciais inválidas
+            page.snack_bar = ft.SnackBar(ft.Text("Login ou senha inválidos!"))
             page.snack_bar.open = True
             page.update()
 
-    email_field = ft.TextField(label="Email")
-    senha_field = ft.TextField(label="Senha", password=True)
+    # Campos de entrada do formulário de login
+    email_field = ft.TextField(label="Email", autofocus=True, width=300)
+    senha_field = ft.TextField(label="Senha", password=True, width=300)
     login_btn = ft.ElevatedButton(text="Entrar", on_click=validar_login)
-    page.add(ft.Column([email_field, senha_field, login_btn]))
 
-# Tela de Cadastro de Atendimento
+    # Adicionando os campos ao layout da página
+    page.add(
+        ft.Row(
+            controls=[ 
+                ft.Column(
+                    controls=[email_field, senha_field, login_btn],
+                    spacing=20,  # Define o espaçamento entre os campos
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True  # Expande para ocupar a tela
+        )
+    )
+
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
         solicitante = solicitante_field.value
-        horario = datetime.now()  # Preenche automaticamente com o horário atual
+        horario = datetime.now()
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
@@ -101,8 +170,16 @@ def cadastro_atendimento_view(page):
                 (nome, cpf, email, solicitante, horario)
             )
             conn.commit()
+            enviar_email(email, nome, cpf)
             page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
             page.snack_bar.open = True
+            page.update()
+            
+            # Limpa os campos após o cadastro
+            nome_field.value = ""
+            cpf_field.value = ""
+            email_field.value = ""
+            solicitante_field.value = ""
             page.update()
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
@@ -110,47 +187,96 @@ def cadastro_atendimento_view(page):
             cursor.close()
             conn.close()
 
-    def voltar_inicio(e):
-        page.clean()
-        main_panel(page)
-
-    nome_field = ft.TextField(label="Nome")
-    cpf_field = ft.TextField(label="CPF")
-    email_field = ft.TextField(label="Email")
-    solicitante_field = ft.TextField(label="Solicitante")
+    nome_field = ft.TextField(label="Nome", width=300)
+    cpf_field = ft.TextField(label="CPF", width=300)
+    email_field = ft.TextField(label="Email", width=300)
+    solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
-    voltar_btn = ft.ElevatedButton(text="Voltar", on_click=voltar_inicio)
+    page.add(
+        ft.Row(
+            controls=[ 
+                ft.Column(
+                    controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
+                    spacing=20,  # Define o espaçamento entre os campos
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True  # Expande para ocupar a tela
+        )
+    )
 
-    page.add(ft.Column([
-        nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn, voltar_btn
-    ]))
+def consulta_atendimentos_view(page):
+    def consultar_atendimentos(e):
+        # Recupera o texto do campo de pesquisa
+        consulta = consulta_field.value.strip()
 
-# Painel Principal
+        if consulta:  # Verifica se o campo de busca não está vazio
+            try:
+                conn = psycopg2.connect(**DB_CONFIG)
+                cursor = conn.cursor()
+                # Busca por nome ou CPF
+                cursor.execute(
+                    """
+                    SELECT * FROM atendimentos
+                    WHERE nome ILIKE %s OR cpf ILIKE %s
+                    """,
+                    (f"%{consulta}%", f"%{consulta}%")  # Pesquisa usando LIKE com '%'
+                )
+                atendimentos = cursor.fetchall()
+
+                if atendimentos:
+                    # Exibe os resultados encontrados
+                    resultados = "\n".join([f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[4]}, Horário: {a[5]}" for a in atendimentos])
+                    page.snack_bar = ft.SnackBar(ft.Text(f"Atendimentos encontrados:\n{resultados}"))
+                    page.snack_bar.open = True
+                    page.update()
+                else:
+                    page.snack_bar = ft.SnackBar(ft.Text("Nenhum atendimento encontrado."))
+                    page.snack_bar.open = True
+                    page.update()
+
+            except Exception as ex:
+                print(f"Erro ao consultar atendimentos: {ex}")
+                page.snack_bar = ft.SnackBar(ft.Text("Erro ao realizar a consulta."))
+                page.snack_bar.open = True
+                page.update()
+            finally:
+                cursor.close()
+                conn.close()
+
+    consulta_field = ft.TextField(label="Nome ou CPF", width=300)
+    consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
+
+    # Adiciona os controles da busca na tela
+    page.add(
+        ft.Row(
+            controls=[
+                ft.Column(
+                    controls=[consulta_field, consultar_btn],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True
+        )
+    )
+
 def main_panel(page):
-    def abrir_consulta(e):
-        pass  # Implementar função de consulta
+    page.clean()  # Limpa a tela antes de adicionar os novos controles
+    page.add(
+        ft.Row(
+            controls=[
+                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+            ],
+            spacing=20
+        )
+    )
 
-    def abrir_cadastro(e):
-        page.clean()
-        cadastro_atendimento_view(page)
-
-    def abrir_relatorio(e):
-        pass  # Implementar função de relatório
-
-    def deslogar(e):
-        page.clean()
-        login_view(page)
-
-    page.add(ft.Column([
-        ft.ElevatedButton("Consulta", on_click=abrir_consulta),
-        ft.ElevatedButton("Cadastro de Atendimento", on_click=abrir_cadastro),
-        ft.ElevatedButton("Gerar Relatório", on_click=abrir_relatorio),
-        ft.ElevatedButton("Logout", on_click=deslogar)
-    ]))
-
-# Inicializar o app
-def main(page: ft.Page):
-    init_db()
+def main(page):
+    page.title = "Sistema de Atendimento"
     login_view(page)
 
 ft.app(target=main)
