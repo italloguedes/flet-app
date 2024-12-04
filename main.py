@@ -6,21 +6,25 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
-
+import os
 # Configuração do Banco de Dados no Supabase
+
+
+# Configuração do banco de dados
 DB_CONFIG = {
-    "host": "aws-0-us-west-1.pooler.supabase.com",
-    "port": 6543,
-    "dbname": "postgres",
-    "user": "postgres.gfxabtythrcxoyykzcxi",
-    "password": "MIp6cj7zla9MlZoR"  # Substitua pelo password real
+    "host": os.getenv("DB_HOST"),  # Usando variável de ambiente ou valor padrão
+    "port": int(os.getenv("DB_PORT")),  # Usando variável de ambiente ou valor padrão
+    "dbname": os.getenv("DB_NAME"),  # Usando variável de ambiente ou valor padrão
+    "user": os.getenv("DB_USER"),  # Usando variável de ambiente ou valor padrão
+    "password": os.getenv("DB_PASSWORD"),  # Usando variável de ambiente ou valor padrão
 }
 
 # Configuração do servidor de e-mail
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_EMAIL = "sala.sensorial.alece@gmail.com"
-SMTP_PASSWORD = "wqckvxkttebescrd"
+SMTP_SERVER = os.getenv("SMTP_SERVER")  # Usando variável de ambiente ou valor padrão
+SMTP_PORT = int(os.getenv("SMTP_PORT"))  # Usando variável de ambiente ou valor padrão
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")  # Usando variável de ambiente ou valor padrão
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # Usando variável de ambiente ou valor padrão
+
 
 def init_db():
     try:
