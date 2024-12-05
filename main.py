@@ -218,6 +218,134 @@ def cadastro_atendimento_view(page):
         )
     )
 
+def consulta_atendimentos_view(page):
+    def consultar_atendimentos(e):
+        # Recupera o texto do campo de pesquisa
+        consulta = consulta_field.value.strip()
+
+        if consulta:  # Verifica se o campo de busca não está vazio
+            try:
+                conn = psycopg2.connect(**DB_CONFIG)
+                cursor = conn.cursor()
+                # Busca por nome ou CPF
+                cursor.execute(
+                    """
+                    SELECT * FROM atendimentos
+                    WHERE nome ILIKE %s OR cpf ILIKE %s
+                    """,
+                    (f"%{consulta}%", f"%{consulta}%")  # Pesquisa usando LIKE com '%'
+                )
+                atendimentos = cursor.fetchall()
+
+                if atendimentos:
+                    # Exibe os resultados encontrados
+                    resultados = "\n".join([f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[4]}, Horário: {a[5]}" for a in atendimentos])
+                    page.snack_bar = ft.SnackBar(ft.Text(f"Atendimentos encontrados:\n{resultados}"))
+                    page.snack_bar.open = True
+                    page.update()
+                else:
+                    page.snack_bar = ft.SnackBar(ft.Text("Nenhum atendimento encontrado."))
+                    page.snack_bar.open = True
+                    page.update()
+
+            except Exception as ex:
+                print(f"Erro ao consultar atendimentos: {ex}")
+                page.snack_bar = ft.SnackBar(ft.Text("Erro ao realizar a consulta."))
+                page.snack_bar.open = True
+                page.update()
+            finally:
+                cursor.close()
+                conn.close()
+
+    consulta_field = ft.TextField(label="Nome ou CPF", width=300)
+    consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
+
+    # Adiciona os controles da busca na tela
+    page.add(
+        ft.Row(
+            controls=[
+                ft.Column(
+                    controls=[consulta_field, consultar_btn],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True
+        )
+    )
+    
+def cadastro_cin_view(page):
+    def cadastrar_cin(e):
+        nome = nome_field.value
+        cpf = cpf_field.value
+        status = "Pronta"  # Status padrão
+        created_at = datetime.now()
+        updated_at = datetime.now()
+
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO cins (nome, cpf, status, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (nome, cpf, status, created_at, updated_at)
+            )
+            conn.commit()
+
+            # Mostrar mensagem de sucesso
+            page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso!"))
+            page.snack_bar.open = True
+            page.update()
+
+        except Exception as ex:
+            print(f"Erro ao cadastrar CIN: {ex}")
+            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar CIN."))
+            page.snack_bar.open = True
+            page.update()
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    # Campos de entrada para o cadastro de CIN
+    nome_field = ft.TextField(label="Nome", width=300)
+    cpf_field = ft.TextField(label="CPF", width=300)
+    cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
+
+    # Adicionar campos ao layout
+    page.add(
+        ft.Row(
+            controls=[
+                ft.Column(
+                    controls=[nome_field, cpf_field, cadastrar_btn],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True
+        )
+    )
+
+
+def main_panel(page):
+    page.clean()  # Limpa a tela antes de adicionar os novos controles
+    page.add(
+        ft.Row(
+            controls=[
+                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+                ft.ElevatedButton("Cadastrar Cin", on_click=lambda e: cadastro_cin_view(page)),
+            ],
+            spacing=20
+        )
+    )
 # Inicialização do App
 def main(page):
     page.title = "Sistema de Atendimentos"
