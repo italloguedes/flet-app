@@ -463,7 +463,6 @@ def consulta_atendimentos_view(page):
         )
     )
 
-
 def main_panel(page):
     
     def logout(e):
@@ -471,19 +470,28 @@ def main_panel(page):
         
         # Redireciona para a tela de login
         return login_view(page)
-        print("Logout concluído. Redirecionando para a tela de login.")
 
+def menu(page):
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN"),
-        actions=[
-            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
-            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
-        ]
+        leading=ft.Column(  # Coloca os botões um embaixo do outro
+            controls=[
+                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+                ft.VerticalDivider(),  # Linha vertical entre os botões
+                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+                ft.VerticalDivider(),
+                ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
+                ft.VerticalDivider(),
+                ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+            ],
+            alignment=ft.MainAxisAlignment.START,  # Alinha os botões à esquerda
+            spacing=10  # Espaçamento entre os botões
+        )
     )
+
     page.appbar = menu
     page.update()
+
     
     
 def main(page):
