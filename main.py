@@ -466,27 +466,12 @@ def consulta_atendimentos_view(page):
 
 def main_panel(page):
     
-   def logout(e):
-    """
-    Realiza o logout do usuário atual, limpa a sessão e redireciona para a tela de login.
-    """
-    try:
-        global user_session  # Usa a variável global para gerenciar o estado do usuário
-        
-        # Limpa os dados de sessão
-        if user_session is not None:
-            print(f"Usuário '{user_session}' fez logout.")  # Log de depuração
-        user_session = None
-        
-        # Limpa a interface atual
+    def logout(e):
         page.clean()  # Garante que a interface anterior é completamente limpa
         
         # Redireciona para a tela de login
         login_view(page)
         print("Logout concluído. Redirecionando para a tela de login.")
-        
-    except Exception as ex:
-        print(f"Erro durante o logout: {ex}")
 
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN"),
