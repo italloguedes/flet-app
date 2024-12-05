@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
 import os
+
 # Configuração do Banco de Dados no Supabase
 
 
@@ -49,6 +50,7 @@ def init_db():
                 cpf TEXT,
                 email TEXT,
                 solicitante TEXT,
+                dia_atual TIMESTAMP
                 horario TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -73,20 +75,79 @@ def init_db():
         cursor.close()
         conn.close()
 
-def enviar_email(destinatario, nome, cpf):
-    assunto = "Sala Sensorial/Alece"
-    mensagem = f"""
-    Olá {nome}, {cpf}
-    Seu atendimento foi feito com sucesso e o prazo para retirada é de 30 dias.
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+from datetime import datetime
 
-    [Instruções detalhadas]
+def enviar_email(destinatario, nome, cpf):
+    assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
+    mensagem = f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirmação de Atendimento</title>
+        <style>
+            body {{
+                font-family: 'Arial', sans-serif;
+                background-color: #f4f4f9;
+                color: #333;
+                margin: 0;
+                padding: 20px;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: auto;
+                background-color: white;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }}
+            h1 {{
+                color: #4CAF50;
+                font-size: 24px;
+                margin-bottom: 10px;
+            }}
+            p {{
+                line-height: 1.6;
+                margin: 10px 0;
+            }}
+            .footer {{
+                margin-top: 20px;
+                font-size: 14px;
+                color: #777;
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Olá {nome},</h1>
+            <p>Seu atendimento foi realizado com sucesso!</p>
+            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 30 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
+            <p>Sua CIN estará disponível nas versões digital e física, acessíveis pelo app ou site do gov.br.</p>
+            <p>Instruções para Retirada:</p>
+            <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
+            <p>Endereço: Av. Pontes Vieira, 2300 - São João do Tauape, Fortaleza - CE, 60135-238</p>
+            <p>Horário: 08h às 11:30 e 13h às 16h</p>
+            <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
+            <p>Retirada por Terceiros:</p>
+            <p>Um parente de 1º ou 2º grau (pai, mãe, filho, irmãos, tios ou avós) pode retirar sua CIN com um documento original com foto e a certidão de nascimento ou casamento do titular.</p>
+        </div>
+        <div class="footer">
+            &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
+        </div>
+    </body>
+    </html>
     """
     try:
         msg = MIMEMultipart()
         msg["From"] = SMTP_EMAIL
         msg["To"] = destinatario
         msg["Subject"] = assunto
-        msg.attach(MIMEText(mensagem, "plain"))
+        msg.attach(MIMEText(mensagem, "html"))
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
@@ -96,6 +157,7 @@ def enviar_email(destinatario, nome, cpf):
         print("E-mail enviado com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
+
 
 # Função para hashear senha
 def hash_password(password):
@@ -155,6 +217,9 @@ def login_view(page):
         )
     )
 
+from datetime import datetime
+import psycopg2
+
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         nome = nome_field.value
@@ -162,16 +227,19 @@ def cadastro_atendimento_view(page):
         email = email_field.value
         solicitante = solicitante_field.value
         horario = datetime.now()
+        dia_atual = datetime.now()
+        created_at = datetime.now()
+        updated_at = datetime.now()
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, horario)
+                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
             )
             conn.commit()
             enviar_email(email, nome, cpf)
@@ -190,6 +258,10 @@ def cadastro_atendimento_view(page):
         finally:
             cursor.close()
             conn.close()
+
+    # Aqui você deve adicionar a lógica para criar os campos de entrada (nome_field, cpf_field, etc.)
+    # e adicionar o botão que chama a função cadastrar_atendimento quando clicado.
+
 
     nome_field = ft.TextField(label="Nome", width=300)
     cpf_field = ft.TextField(label="CPF", width=300)
