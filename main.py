@@ -303,7 +303,7 @@ def consulta_atendimentos_view(page):
 
                 if atendimentos:
                     # Exibe os resultados encontrados
-                    resultados = "\n".join([f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[4]}, Horário: {a[5]}" for a in atendimentos])
+                    resultados = "\n".join([f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[6]}, Data: {a[4]}" for a in atendimentos])
                     page.snack_bar = ft.SnackBar(ft.Text(f"Atendimentos encontrados:\n{resultados}"))
                     page.snack_bar.open = True
                     page.update()
