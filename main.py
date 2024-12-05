@@ -341,15 +341,29 @@ def consulta_atendimentos_view(page):
 
 def main_panel(page):
     page.clean()  # Limpa a tela antes de adicionar os novos controles
-    page.add(
-        ft.Row(
-            controls=[
-                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ],
-            spacing=20
-        )
+
+    # Adiciona um painel fixo no topo da tela
+    top_panel = ft.Row(
+        controls=[
+            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+            ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastrar_cin(page)),
+        ],
+        alignment=ft.MainAxisAlignment.END,  # Alinha os botões à direita
+        spacing=20
     )
+
+    # Adiciona o painel principal com as opções de consulta e cadastro de atendimento
+    main_content = ft.Row(
+        controls=[
+            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+        ],
+        spacing=20
+    )
+
+    # Adiciona os painéis à página
+    page.add(top_panel)
+    page.add(main_content)
 
 def main(page):
     page.title = "Sistema de Atendimento"
