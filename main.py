@@ -398,7 +398,6 @@ def main_panel(page):
             ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastro_cin_view(page)),
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ft.ElevatedButton("Relatórios", on_click=lambda e: gerar_relatorios_view(page)),
             ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
         ]
     )
