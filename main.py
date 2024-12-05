@@ -215,27 +215,21 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        nome = nome_field.value.strip()
-        cpf = cpf_field.value.strip()
-        email = email_field.value.strip()
-        solicitante = solicitante_field.value.strip()
+        nome = nome_field.value
+        cpf = cpf_field.value
+        email = email_field.value
+        solicitante = solicitante_field.value
         dia_atual = datetime.now()
         horario = datetime.now()
         created_at = datetime.now()
         updated_at = datetime.now()
-
-        if not nome or not cpf or not email or not solicitante:
-            page.snack_bar = ft.SnackBar(ft.Text("Todos os campos são obrigatórios!", color="red"))
-            page.snack_bar.open = True
-            page.update()
-            return
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, dia_atual, horario, created_at, update_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (nome, cpf, email, solicitante, dia_atual, horario, created_at, updated_at)
@@ -247,15 +241,11 @@ def cadastro_atendimento_view(page):
             page.snack_bar.open = True
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar atendimento!", color="red"))
-            page.snack_bar.open = True
         finally:
-            if 'cursor' in locals():
+            if cursor:
                 cursor.close()
-            if 'conn' in locals():
+            if conn:
                 conn.close()
-
-        page.update()
 
     nome_field = ft.TextField(label="Nome")
     cpf_field = ft.TextField(label="CPF")
