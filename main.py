@@ -122,7 +122,7 @@ def enviar_email(destinatario, nome, cpf):
         <div class="container">
             <h1>Olá {nome},</h1>
             <p>Seu atendimento foi realizado com sucesso!</p>
-            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 30 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
+            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 45 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
             <p>Sua CIN estará disponível nas versões digital e física, acessíveis pelo app ou site do gov.br.</p>
             <p>Instruções para Retirada:</p>
             <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
@@ -393,6 +393,8 @@ def cadastro_cin_view(page):
         )
     )
 
+def gerar_relatorios_view():
+    pass
 
 def main_panel(page):
     
@@ -406,6 +408,7 @@ def main_panel(page):
             ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastro_cin_view(page)),
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+            ft.ElevatedButton("Relatórios", on_click=lambda e: gerar_relatorios_view(page)),
             ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
         ]
     )
