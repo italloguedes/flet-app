@@ -390,8 +390,118 @@ def cadastro_cin_view(page):
         )
     )
 
-def gerar_relatorios_view():
-    pass
+def gerar_relatorios_view(data_inicio, data_fim):
+    """
+    Gera o relatório em PDF filtrando os atendimentos por data.
+    Retorna o caminho do arquivo PDF gerado.
+    """
+    try:
+        # Conectar ao banco de dados
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        # Consultar atendimentos filtrados por data
+        query = sql.SQL(
+            """
+            SELECT nome, cpf, dia_atual, solicitante
+            FROM atendimentos
+            WHERE dia_atual BETWEEN %s AND %s
+            ORDER BY dia_atual ASC
+            """
+        )
+        cursor.execute(query, (data_inicio, data_fim))
+        atendimentos = cursor.fetchall()
+
+        # Gerar o PDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        # Título do relatório
+        pdf.set_font("Arial", style="B", size=14)
+        pdf.cell(200, 10, txt="Relatório de Atendimentos", ln=True, align="C")
+        pdf.ln(10)
+
+        # Cabeçalho da tabela
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(60, 10, "Nome", border=1)
+        pdf.cell(40, 10, "CPF", border=1)
+        pdf.cell(40, 10, "Data", border=1)
+        pdf.cell(50, 10, "Solicitante", border=1)
+        pdf.ln()
+
+        # Preencher a tabela
+        pdf.set_font("Arial", size=12)
+        for atendimento in atendimentos:
+            nome, cpf, dia_atual, solicitante = atendimento
+            pdf.cell(60, 10, nome, border=1)
+            pdf.cell(40, 10, cpf, border=1)
+            pdf.cell(40, 10, dia_atual.strftime("%d/%m/%Y"), border=1)
+            pdf.cell(50, 10, solicitante, border=1)
+            pdf.ln()
+
+        # Salvar o PDF
+        output_dir = "./relatorios"
+        os.makedirs(output_dir, exist_ok=True)
+        pdf_path = os.path.join(output_dir, f"relatorio_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf")
+        pdf.output(pdf_path)
+
+        return pdf_path
+
+    except Exception as e:
+        print(f"Erro ao gerar relatório: {e}")
+        return None
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+def relatorio_view(page):
+    """
+    Cria a view no Flet para gerar e exibir o relatório.
+    """
+    def gerar_e_exibir_relatorio(e):
+        data_inicio = inicio_field.value.strip()
+        data_fim = fim_field.value.strip()
+
+        if not data_inicio or not data_fim:
+            page.snack_bar = ft.SnackBar(ft.Text("Por favor, preencha as datas!"))
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        try:
+            pdf_path = gerar_relatorios_view(data_inicio, data_fim)
+            if pdf_path:
+                # Exibir o relatório
+                page.add(ft.Text("Relatório gerado com sucesso!", style="headlineSmall"))
+                page.add(ft.FilePickerUpload(files=[ft.FilePickerFile(path=pdf_path)]))
+                page.update()
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text("Erro ao gerar o relatório."))
+                page.snack_bar.open = True
+                page.update()
+        except Exception as ex:
+            print(f"Erro: {ex}")
+
+    # Campos de entrada para as datas
+    inicio_field = ft.TextField(label="Data Início (AAAA-MM-DD)", width=250)
+    fim_field = ft.TextField(label="Data Fim (AAAA-MM-DD)", width=250)
+    gerar_btn = ft.ElevatedButton(text="Gerar Relatório", on_click=gerar_e_exibir_relatorio)
+
+    # Layout
+    page.add(
+        ft.Column(
+            controls=[
+                ft.Row([inicio_field, fim_field], spacing=20),
+                gerar_btn,
+            ],
+            spacing=30,
+        )
+    )
 
 def main_panel(page):
     
