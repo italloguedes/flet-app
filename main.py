@@ -45,15 +45,15 @@ def init_db():
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS atendimentos (
-                id SERIAL PRIMARY KEY,
-                nome TEXT,
-                cpf TEXT,
-                email TEXT,
-                solicitante TEXT,
-                dia_atual TIMESTAMP,
-                horario TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            id SERIAL PRIMARY KEY,
+            nome TEXT,
+            cpf TEXT,
+            email TEXT,
+            solicitante TEXT,
+            dia_atual TIMESTAMP,
+            horario TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
