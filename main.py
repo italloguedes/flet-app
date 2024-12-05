@@ -7,8 +7,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
 import os
-from fpdf import FPDF
 
+# Configuração do Banco de Dados no Supabase
+
+
+# Configuração do banco de dados
 DB_CONFIG = {
     "host": os.getenv("DB_HOST"),  # Usando variável de ambiente ou valor padrão
     "port": int(os.getenv("DB_PORT")),  # Usando variável de ambiente ou valor padrão
@@ -72,6 +75,10 @@ def init_db():
         cursor.close()
         conn.close()
 
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+from datetime import datetime
 
 def enviar_email(destinatario, nome, cpf):
     assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
@@ -119,7 +126,7 @@ def enviar_email(destinatario, nome, cpf):
         <div class="container">
             <h1>Olá {nome},</h1>
             <p>Seu atendimento foi realizado com sucesso!</p>
-            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 45 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
+            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 30 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
             <p>Sua CIN estará disponível nas versões digital e física, acessíveis pelo app ou site do gov.br.</p>
             <p>Instruções para Retirada:</p>
             <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
@@ -196,7 +203,7 @@ def login_view(page):
     login_btn = ft.ElevatedButton(text="Entrar", on_click=validar_login)
 
     # Adicionando os campos ao layout da página
-    page.controls(
+    page.add(
         ft.Row(
             controls=[ 
                 ft.Column(
@@ -209,6 +216,9 @@ def login_view(page):
             expand=True  # Expande para ocupar a tela
         )
     )
+
+from datetime import datetime
+import psycopg2
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
@@ -328,83 +338,19 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
-    
-def cadastro_cin_view(page):
-    def cadastrar_cin(e):
-        nome = nome_field.value
-        cpf = cpf_field.value
-        status = "Pronta"  # Status padrão
-        created_at = datetime.now()
-        updated_at = datetime.now()
 
-        try:
-            conn = psycopg2.connect(**DB_CONFIG)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                INSERT INTO cins (nome, cpf, status, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (nome, cpf, status, created_at, updated_at)
-            )
-            conn.commit()
-
-            # Mostrar mensagem de sucesso
-            page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso!"))
-            page.snack_bar.open = True
-            page.update()
-
-        except Exception as ex:
-            print(f"Erro ao cadastrar CIN: {ex}")
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar CIN."))
-            page.snack_bar.open = True
-            page.update()
-
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-
-    # Campos de entrada para o cadastro de CIN
-    nome_field = ft.TextField(label="Nome", width=300)
-    cpf_field = ft.TextField(label="CPF", width=300)
-    cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
-
-    # Adicionar campos ao layout
-    page.controls(
+def main_panel(page):
+    page.clean()  # Limpa a tela antes de adicionar os novos controles
+    page.add(
         ft.Row(
             controls=[
-                ft.Column(
-                    controls=[nome_field, cpf_field, cadastrar_btn],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.CENTER
-                )
+                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
             ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            expand=True
+            spacing=20
         )
     )
 
-def main_panel(page):
-               
-    def logout(e):
-        login_view(page)
-
-    menu = ft.AppBar(
-        title=ft.Text("Gestão de Atendimentos e CIN"),
-        actions=[
-            ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastro_cin_view(page)),
-            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
-        ]
-    )
-    page.appbar = menu
-    page.update()
-    
-    
 def main(page):
     page.title = "Sistema de Atendimentos"
     page.theme_mode = "dark"
