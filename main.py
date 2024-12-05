@@ -467,13 +467,12 @@ def main_panel(page):
     
     def logout(e):
         page.clean()  # Garante que a interface anterior é completamente limpa
-        
-        # Redireciona para a tela de login
         return login_view(page)
 
     
+
     menu = ft.AppBar(
-        title=ft.Text("Sistema de Atendimentos", alignment=ft.MainAxisAlignment.END),  # Alinha o título à direita
+        title=ft.Text("Sistema de Atendimentos Sala Sensorial / ALECE", alignment=ft.MainAxisAlignment.END),  # Alinha o título à direita
         actions=[  # Aqui você pode adicionar os botões ou outras ações
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
@@ -485,8 +484,8 @@ def main_panel(page):
     page.appbar = menu
     page.update()
 
-    
 def main(page):
+    page.title = "Sistema de Atendimentos"
     page.theme_mode = "dark"
     page.horizontal_alignment = "center"
     page.vertical_alignment = "center"
