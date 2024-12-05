@@ -75,73 +75,124 @@ def init_db():
         cursor.close()
         conn.close()
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import smtplib
-from datetime import datetime
+def enviar_email(destinatario, nome, cpf, tipo_email):
+    assunto = ""
+    mensagem = ""
 
-def enviar_email(destinatario, nome, cpf):
-    assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
-    mensagem = f"""
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Confirmação de Atendimento</title>
-        <style>
-            body {{
-                font-family: 'Arial', sans-serif;
-                background-color: #f4f4f9;
-                color: #333;
-                margin: 0;
-                padding: 20px;
-            }}
-            .container {{
-                max-width: 600px;
-                margin: auto;
-                background-color: white;
-                border-radius: 8px;
-                padding: 20px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            }}
-            h1 {{
-                color: #4CAF50;
-                font-size: 24px;
-                margin-bottom: 10px;
-            }}
-            p {{
-                line-height: 1.6;
-                margin: 10px 0;
-            }}
-            .footer {{
-                margin-top: 20px;
-                font-size: 14px;
-                color: #777;
-                text-align: center;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Olá {nome},</h1>
-            <p>Seu atendimento foi realizado com sucesso!</p>
-            <p>Importante: o prazo médio para entrega da sua CIN (Carteira de Identidade Nacional) é de 30 dias. Você receberá uma notificação por email assim que estiver pronta para retirada. Fique atento!</p>
-            <p>Sua CIN estará disponível nas versões digital e física, acessíveis pelo app ou site do gov.br.</p>
-            <p>Instruções para Retirada:</p>
-            <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
-            <p>Endereço: Av. Pontes Vieira, 2300 - São João do Tauape, Fortaleza - CE, 60135-238</p>
-            <p>Horário: 08h às 11:30 e 13h às 16h</p>
-            <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
-            <p>Retirada por Terceiros:</p>
-            <p>Um parente de 1º ou 2º grau (pai, mãe, filho, irmãos, tios ou avós) pode retirar sua CIN com um documento original com foto e a certidão de nascimento ou casamento do titular.</p>
-        </div>
-        <div class="footer">
-            &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
-        </div>
-    </body>
-    </html>
-    """
+    if tipo_email == "atendimento":
+        assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
+        mensagem = f"""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Confirmação de Atendimento</title>
+            <style>
+                body {{
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f4f4f9;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                }}
+                h1 {{
+                    color: #4CAF50;
+                    font-size: 24px;
+                    margin-bottom: 10px;
+                }}
+                p {{
+                    line-height: 1.6;
+                    margin: 10px 0;
+                }}
+                .footer {{
+                    margin-top: 20px;
+                    font-size: 14px;
+                    color: #777;
+                    text-align: center;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Olá {nome},</h1>
+                <p>Seu atendimento foi realizado com sucesso!</p>
+                <p>Importante: o prazo médio para entrega da sua CIN é de 30 dias. Fique atento ao seu e-mail!</p>
+                <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
+            </div>
+            <div class="footer">
+                &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
+            </div>
+        </body>
+        </html>
+        """
+    elif tipo_email == "cin_pronta":
+        assunto = "CIN Pronta para Retirada - Sala Sensorial/Alece"
+        mensagem = f"""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CIN Pronta</title>
+            <style>
+                body {{
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f4f4f9;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                }}
+                h1 {{
+                    color: #4CAF50;
+                    font-size: 24px;
+                    margin-bottom: 10px;
+                }}
+                p {{
+                    line-height: 1.6;
+                    margin: 10px 0;
+                }}
+                .footer {{
+                    margin-top: 20px;
+                    font-size: 14px;
+                    color: #777;
+                    text-align: center;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Olá {nome},</h1>
+                <p>Estamos felizes em informar que sua CIN (Carteira de Identidade Nacional) está pronta para retirada.</p>
+                <p><strong>Instruções para Retirada:</strong></p>
+                <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
+                <p>Endereço: Av. Pontes Vieira, 2300, Fortaleza - CE</p>
+                <p>Horário: 08h às 11:30 e 13h às 16h</p>
+                <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
+            </div>
+            <div class="footer">
+                &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
+            </div>
+        </body>
+        </html>
+        """
+
     try:
         msg = MIMEMultipart()
         msg["From"] = SMTP_EMAIL
@@ -157,7 +208,6 @@ def enviar_email(destinatario, nome, cpf):
         print("E-mail enviado com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
-
 
 # Função para hashear senha
 def hash_password(password):
@@ -239,7 +289,7 @@ def cadastro_atendimento_view(page):
                 (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
             )
             conn.commit()
-            enviar_email(email, nome, cpf)
+            enviar_email(email, nome, cpf, "atendimento")
             page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
             page.snack_bar.open = True
             page.update()
@@ -286,24 +336,39 @@ def cadastro_cin_view(page):
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
 
+            # Verificar se o CPF existe na tabela atendimentos
             cursor.execute(
                 """
-                INSERT INTO cins (nome, cpf, status, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s)
+                SELECT email, nome FROM atendimentos WHERE cpf = %s
                 """,
-                (nome, cpf, status, created_at, updated_at)
+                (cpf,)
             )
-            conn.commit()
+            atendimento = cursor.fetchone()
 
-            # Enviar e-mail de confirmação
-            try:
-                destinatario = "email_do_usuario@example.com"  # Substitua pelo e-mail real do usuário
-                enviar_email(destinatario, nome, cpf)
-                page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso e e-mail enviado!"))
-            except Exception as ex_email:
-                print(f"Erro ao enviar e-mail: {ex_email}")
-                page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada, mas houve erro ao enviar o e-mail."))
+            if atendimento:
+                # Capturar email e nome do registro encontrado
+                destinatario, nome_atendimento = atendimento
 
+                # Inserir a CIN na tabela de cins
+                cursor.execute(
+                    """
+                    INSERT INTO cins (nome, cpf, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (nome, cpf, status, created_at, updated_at)
+                )
+                conn.commit()
+
+                # Enviar e-mail de confirmação
+                try:
+                    enviar_email(destinatario, nome_atendimento, cpf, "cin_pronta")
+                    page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso e e-mail enviado!"))
+                except Exception as ex_email:
+                    print(f"Erro ao enviar e-mail: {ex_email}")
+                    page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada, mas houve erro ao enviar o e-mail."))
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text("CPF não encontrado na tabela de atendimentos."))
+            
             page.snack_bar.open = True
             page.update()
 
@@ -338,6 +403,7 @@ def cadastro_cin_view(page):
             expand=True
         )
     )
+
 
 
 def consulta_atendimentos_view(page):
