@@ -199,7 +199,7 @@ def login_view(page):
     login_btn = ft.ElevatedButton(text="Entrar", on_click=validar_login)
 
     # Adicionando os campos ao layout da página
-    page.add(
+    page.controls(
         ft.Row(
             controls=[ 
                 ft.Column(
@@ -261,7 +261,7 @@ def cadastro_atendimento_view(page):
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
-    page.add(
+    page.controls(
         ft.Row(
             controls=[ 
                 ft.Column(
@@ -376,7 +376,7 @@ def cadastro_cin_view(page):
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
 
     # Adicionar campos ao layout
-    page.add(
+    page.controls(
         ft.Row(
             controls=[
                 ft.Column(
@@ -390,7 +390,7 @@ def cadastro_cin_view(page):
         )
     )
 
-def gerar_relatorios_view(data_inicio, data_fim):
+def gerar_relatorio_view(data_inicio, data_fim):
     """
     Gera o relatório em PDF filtrando os atendimentos por data.
     Retorna o caminho do arquivo PDF gerado.
@@ -474,7 +474,7 @@ def relatorio_view(page):
             return
 
         try:
-            pdf_path = gerar_relatorios_view(data_inicio, data_fim)
+            pdf_path = gerar_relatorio_view(data_inicio, data_fim)
             if pdf_path:
                 # Exibir o relatório
                 page.add(ft.Text("Relatório gerado com sucesso!", style="headlineSmall"))
@@ -502,11 +502,10 @@ def relatorio_view(page):
             spacing=30,
         )
     )
-
-def main_panel(page):
     
+def main_panel(page):
+               
     def logout(e):
-        page.clean()
         login_view(page)
 
     menu = ft.AppBar(
