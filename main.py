@@ -219,8 +219,8 @@ def cadastro_atendimento_view(page):
         cpf = cpf_field.value
         email = email_field.value
         solicitante = solicitante_field.value
-        dia_atual = datetime.now()
         horario = datetime.now()
+        dia_atual = datetime.now()
         created_at = datetime.now()
         updated_at = datetime.now()
 
@@ -229,52 +229,49 @@ def cadastro_atendimento_view(page):
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, dia_atual, horario, created_at, update_at)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, dia_atual, horario, created_at, updated_at)
+                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
             )
             conn.commit()
-
-            enviar_email(email, nome)
-            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!", color="green"))
+            enviar_email(email, nome, cpf)
+            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
             page.snack_bar.open = True
+            page.update()
+            
+            # Limpa os campos após o cadastro
+            nome_field.value = ""
+            cpf_field.value = ""
+            email_field.value = ""
+            solicitante_field.value = ""
+            page.update()
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            cursor.close()
+            conn.close()
 
-    nome_field = ft.TextField(label="Nome")
-    cpf_field = ft.TextField(label="CPF")
-    email_field = ft.TextField(label="Email")
-    solicitante_field = ft.TextField(label="Solicitante")
-    cadastro_btn = ft.ElevatedButton(
-        text="Cadastrar",
-        on_click=cadastrar_atendimento,
-        style=ft.ButtonStyle(color="white", bgcolor="#28A745")
-    )
+    # Aqui você deve adicionar a lógica para criar os campos de entrada (nome_field, cpf_field, etc.)
+    # e adicionar o botão que chama a função cadastrar_atendimento quando clicado.
 
+
+    nome_field = ft.TextField(label="Nome", width=300)
+    cpf_field = ft.TextField(label="CPF", width=300)
+    email_field = ft.TextField(label="Email", width=300)
+    solicitante_field = ft.TextField(label="Solicitante", width=300)
+    cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
     page.add(
-        ft.Container(
-            content=ft.Column(
-                controls=[
-                    ft.Text("Cadastro de Atendimento", size=30, weight="bold", color="#333"),
-                    nome_field,
-                    cpf_field,
-                    email_field,
-                    solicitante_field,
-                    cadastro_btn
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            ),
-            alignment=ft.alignment.center,
-            padding=30,
-            bgcolor="#F5F5F5",
-            border_radius=10
+        ft.Row(
+            controls=[ 
+                ft.Column(
+                    controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
+                    spacing=20,  # Define o espaçamento entre os campos
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True  # Expande para ocupar a tela
         )
     )
 
