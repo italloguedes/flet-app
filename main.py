@@ -473,26 +473,20 @@ def main_panel(page):
 
     
     menu = ft.AppBar(
-        title=ft.Text("Gestão de Atendimentos e CIN"),
-            leading=ft.Row(  # Alinha os botões à esquerda
-                controls=[
-                        ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-                        ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-                        ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
-                        ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
-                    ],
-                    alignment=ft.MainAxisAlignment.START,  # Garante que os botões fiquem à esquerda
-                    spacing=10  # Espaçamento entre os botões
-                )
-            )
-
+        title=ft.Text("Sistema de Atendimentos", alignment=ft.MainAxisAlignment.END),  # Alinha o título à direita
+        actions=[  # Aqui você pode adicionar os botões ou outras ações
+            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+            ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
+            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+        ]
+    )
+    
     page.appbar = menu
     page.update()
 
     
-    
 def main(page):
-    page.title = "Sistema de Atendimentos"
     page.theme_mode = "dark"
     page.horizontal_alignment = "center"
     page.vertical_alignment = "center"
