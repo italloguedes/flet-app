@@ -217,9 +217,6 @@ def login_view(page):
         )
     )
 
-from datetime import datetime
-import psycopg2
-
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         nome = nome_field.value
@@ -258,10 +255,6 @@ def cadastro_atendimento_view(page):
         finally:
             cursor.close()
             conn.close()
-
-    # Aqui você deve adicionar a lógica para criar os campos de entrada (nome_field, cpf_field, etc.)
-    # e adicionar o botão que chama a função cadastrar_atendimento quando clicado.
-
 
     nome_field = ft.TextField(label="Nome", width=300)
     cpf_field = ft.TextField(label="CPF", width=300)
@@ -302,8 +295,15 @@ def cadastro_cin_view(page):
             )
             conn.commit()
 
-            # Mostrar mensagem de sucesso
-            page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso!"))
+            # Enviar e-mail de confirmação
+            try:
+                destinatario = "email_do_usuario@example.com"  # Substitua pelo e-mail real do usuário
+                enviar_email(destinatario, nome, cpf)
+                page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso e e-mail enviado!"))
+            except Exception as ex_email:
+                print(f"Erro ao enviar e-mail: {ex_email}")
+                page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada, mas houve erro ao enviar o e-mail."))
+
             page.snack_bar.open = True
             page.update()
 
@@ -338,6 +338,7 @@ def cadastro_cin_view(page):
             expand=True
         )
     )
+
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
