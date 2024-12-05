@@ -470,7 +470,7 @@ def main_panel(page):
         page.clean()  # Garante que a interface anterior é completamente limpa
         
         # Redireciona para a tela de login
-        login_view(page)
+        return login_view(page)
         print("Logout concluído. Redirecionando para a tela de login.")
 
     menu = ft.AppBar(
