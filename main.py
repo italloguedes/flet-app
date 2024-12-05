@@ -5,7 +5,6 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import hashlib
 import os
 
 # Configuração do Banco de Dados
@@ -57,12 +56,11 @@ def init_db():
         cursor.execute(
             """
             INSERT INTO usuarios (nome, email, senha)
-            SELECT 'Admin', 'admin@admin.com', %s
+            SELECT 'Admin', 'admin@admin.com', 'admin123'
             WHERE NOT EXISTS (
                 SELECT 1 FROM usuarios WHERE email = 'admin@admin.com'
             )
-            """,
-            (hashlib.sha256(b"admin123").hexdigest(),)
+            """
         )
         conn.commit()
     except Exception as e:
@@ -98,23 +96,18 @@ def enviar_email(destinatario, nome):
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
-# Função para hashear senha
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
 # View de Login
 def login_view(page):
     def validar_login(e):
         email = email_field.value.strip()
         senha = senha_field.value.strip()
-        senha_hashed = hash_password(senha)
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT * FROM usuarios WHERE email = %s AND senha = %s",
-                (email, senha_hashed)
+                (email, senha)
             )
             user = cursor.fetchone()
         except Exception as ex:
@@ -130,15 +123,36 @@ def login_view(page):
             page.clean()
             cadastro_atendimento_view(page)
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Login ou senha inválidos!"))
+            page.snack_bar = ft.SnackBar(ft.Text("Login ou senha inválidos!", color="red"))
             page.snack_bar.open = True
             page.update()
 
     email_field = ft.TextField(label="Email", autofocus=True, width=300)
     senha_field = ft.TextField(label="Senha", password=True, width=300)
-    login_btn = ft.ElevatedButton(text="Entrar", on_click=validar_login)
+    login_btn = ft.ElevatedButton(
+        text="Entrar",
+        on_click=validar_login,
+        style=ft.ButtonStyle(color="white", bgcolor="#007BFF")
+    )
 
-    page.add(ft.Column(controls=[email_field, senha_field, login_btn], alignment=ft.MainAxisAlignment.CENTER))
+    page.add(
+        ft.Container(
+            content=ft.Column(
+                controls=[
+                    ft.Text("Login", size=30, weight="bold", color="#333"),
+                    email_field,
+                    senha_field,
+                    login_btn
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ),
+            alignment=ft.alignment.center,
+            padding=30,
+            bgcolor="#F5F5F5",
+            border_radius=10
+        )
+    )
 
 # View de Cadastro de Atendimento
 def cadastro_atendimento_view(page):
@@ -163,7 +177,7 @@ def cadastro_atendimento_view(page):
             conn.commit()
 
             enviar_email(email, nome)
-            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
+            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!", color="green"))
             page.snack_bar.open = True
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
@@ -177,13 +191,39 @@ def cadastro_atendimento_view(page):
     cpf_field = ft.TextField(label="CPF")
     email_field = ft.TextField(label="Email")
     solicitante_field = ft.TextField(label="Solicitante")
-    cadastro_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
+    cadastro_btn = ft.ElevatedButton(
+        text="Cadastrar",
+        on_click=cadastrar_atendimento,
+        style=ft.ButtonStyle(color="white", bgcolor="#28A745")
+    )
 
-    page.add(ft.Column(controls=[nome_field, cpf_field, email_field, solicitante_field, cadastro_btn]))
+    page.add(
+        ft.Container(
+            content=ft.Column(
+                controls=[
+                    ft.Text("Cadastro de Atendimento", size=30, weight="bold", color="#333"),
+                    nome_field,
+                    cpf_field,
+                    email_field,
+                    solicitante_field,
+                    cadastro_btn
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ),
+            alignment=ft.alignment.center,
+            padding=30,
+            bgcolor="#F5F5F5",
+            border_radius=10
+        )
+    )
 
 # Inicialização do App
 def main(page):
     page.title = "Sistema de Atendimentos"
+    page.theme_mode = "light"
+    page.horizontal_alignment = "center"
+    page.vertical_alignment = "center"
     init_db()
     login_view(page)
 
