@@ -5,29 +5,33 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import hashlib
 import os
 
-# Configuração do Banco de Dados
+# Configuração do Banco de Dados no Supabase
+
+
+# Configuração do banco de dados
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST"),
-    "port": int(os.getenv("DB_PORT")),
-    "dbname": os.getenv("DB_NAME"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
+    "host": os.getenv("DB_HOST"),  # Usando variável de ambiente ou valor padrão
+    "port": int(os.getenv("DB_PORT")),  # Usando variável de ambiente ou valor padrão
+    "dbname": os.getenv("DB_NAME"),  # Usando variável de ambiente ou valor padrão
+    "user": os.getenv("DB_USER"),  # Usando variável de ambiente ou valor padrão
+    "password": os.getenv("DB_PASSWORD"),  # Usando variável de ambiente ou valor padrão
 }
 
 # Configuração do servidor de e-mail
-SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = int(os.getenv("SMTP_PORT"))
-SMTP_EMAIL = os.getenv("SMTP_EMAIL")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+SMTP_SERVER = os.getenv("SMTP_SERVER")  # Usando variável de ambiente ou valor padrão
+SMTP_PORT = int(os.getenv("SMTP_PORT"))  # Usando variável de ambiente ou valor padrão
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")  # Usando variável de ambiente ou valor padrão
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # Usando variável de ambiente ou valor padrão
 
-# Inicialização do banco de dados
+
 def init_db():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
-
+        # Criação das tabelas
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS usuarios (
@@ -46,21 +50,23 @@ def init_db():
                 cpf TEXT,
                 email TEXT,
                 solicitante TEXT,
-                dia_atual TIMESTAMP,
+                dia_atual TIMESTAMP
                 horario TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        # Inserir usuário admin padrão (se não existir)
         cursor.execute(
             """
             INSERT INTO usuarios (nome, email, senha)
-            SELECT 'Admin', 'admin@admin.com', 'admin123'
+            SELECT 'Admin', 'admin@admin.com', %s
             WHERE NOT EXISTS (
                 SELECT 1 FROM usuarios WHERE email = 'admin@admin.com'
             )
-            """
+            """,
+            (hashlib.sha256(b"admin123").hexdigest(),)
         )
         conn.commit()
     except Exception as e:
@@ -69,7 +75,11 @@ def init_db():
         cursor.close()
         conn.close()
 
-# Função para enviar e-mails
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+from datetime import datetime
+
 def enviar_email(destinatario, nome, cpf):
     assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
     mensagem = f"""
@@ -148,20 +158,26 @@ def enviar_email(destinatario, nome, cpf):
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
-# View de Login
+
+# Função para hashear senha
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Funções de Tela
 def login_view(page):
     def validar_login(e):
         email = email_field.value.strip()
         senha = senha_field.value.strip()
+        senha_hashed = hash_password(senha)  # Gerar o hash da senha
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT * FROM usuarios WHERE email = %s AND senha = %s",
-                (email, senha)
+                (email, senha)  # Comparar com o hash armazenado no banco
             )
-            user = cursor.fetchone()
+            user = cursor.fetchone()  # Buscar o usuário
         except Exception as ex:
             print(f"Erro na validação do login: {ex}")
             user = None
@@ -172,49 +188,46 @@ def login_view(page):
                 conn.close()
 
         if user:
-            page.clean()
-            cadastro_atendimento_view(page)
+            # Login bem-sucedido
+            page.clean()  # Limpa a tela antes de exibir a nova view
+            main_panel(page)
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Login ou senha inválidos!", color="red"))
+            # Credenciais inválidas
+            page.snack_bar = ft.SnackBar(ft.Text("Login ou senha inválidos!"))
             page.snack_bar.open = True
             page.update()
 
+    # Campos de entrada do formulário de login
     email_field = ft.TextField(label="Email", autofocus=True, width=300)
     senha_field = ft.TextField(label="Senha", password=True, width=300)
-    login_btn = ft.ElevatedButton(
-        text="Entrar",
-        on_click=validar_login,
-        style=ft.ButtonStyle(color="white", bgcolor="#007BFF")
-    )
+    login_btn = ft.ElevatedButton(text="Entrar", on_click=validar_login)
 
+    # Adicionando os campos ao layout da página
     page.add(
-        ft.Container(
-            content=ft.Column(
-                controls=[
-                    ft.Text("Login", size=30, weight="bold", color="#333"),
-                    email_field,
-                    senha_field,
-                    login_btn
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            ),
-            alignment=ft.alignment.center,
-            padding=30,
-            bgcolor="#F5F5F5",
-            border_radius=10
+        ft.Row(
+            controls=[ 
+                ft.Column(
+                    controls=[email_field, senha_field, login_btn],
+                    spacing=20,  # Define o espaçamento entre os campos
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True  # Expande para ocupar a tela
         )
     )
 
-# View de Cadastro de Atendimento
+from datetime import datetime
+import psycopg2
+
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
         solicitante = solicitante_field.value
-        dia_atual = datetime.now()
         horario = datetime.now()
+        dia_atual = datetime.now()
         created_at = datetime.now()
         updated_at = datetime.now()
 
@@ -223,52 +236,49 @@ def cadastro_atendimento_view(page):
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, dia_atual, horario, created_at, update_at)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, dia_atual, horario, created_at, updated_at)
+                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
             )
             conn.commit()
-
-            enviar_email(email, nome)
-            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!", color="green"))
+            enviar_email(email, nome, cpf)
+            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
             page.snack_bar.open = True
+            page.update()
+            
+            # Limpa os campos após o cadastro
+            nome_field.value = ""
+            cpf_field.value = ""
+            email_field.value = ""
+            solicitante_field.value = ""
+            page.update()
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            cursor.close()
+            conn.close()
 
-    nome_field = ft.TextField(label="Nome")
-    cpf_field = ft.TextField(label="CPF")
-    email_field = ft.TextField(label="Email")
-    solicitante_field = ft.TextField(label="Solicitante")
-    cadastro_btn = ft.ElevatedButton(
-        text="Cadastrar",
-        on_click=cadastrar_atendimento,
-        style=ft.ButtonStyle(color="white", bgcolor="#28A745")
-    )
+    # Aqui você deve adicionar a lógica para criar os campos de entrada (nome_field, cpf_field, etc.)
+    # e adicionar o botão que chama a função cadastrar_atendimento quando clicado.
 
+
+    nome_field = ft.TextField(label="Nome", width=300)
+    cpf_field = ft.TextField(label="CPF", width=300)
+    email_field = ft.TextField(label="Email", width=300)
+    solicitante_field = ft.TextField(label="Solicitante", width=300)
+    cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
     page.add(
-        ft.Container(
-            content=ft.Column(
-                controls=[
-                    ft.Text("Cadastro de Atendimento", size=30, weight="bold", color="#333"),
-                    nome_field,
-                    cpf_field,
-                    email_field,
-                    solicitante_field,
-                    cadastro_btn
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            ),
-            alignment=ft.alignment.center,
-            padding=30,
-            bgcolor="#F5F5F5",
-            border_radius=10
+        ft.Row(
+            controls=[ 
+                ft.Column(
+                    controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
+                    spacing=20,  # Define o espaçamento entre os campos
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True  # Expande para ocupar a tela
         )
     )
 
@@ -328,65 +338,6 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
-    
-def cadastro_cin_view(page):
-    def cadastrar_cin(e):
-        nome = nome_field.value
-        cpf = cpf_field.value
-        status = "Pronta"  # Status padrão
-        created_at = datetime.now()
-        updated_at = datetime.now()
-
-        try:
-            conn = psycopg2.connect(**DB_CONFIG)
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                INSERT INTO cins (nome, cpf, status, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (nome, cpf, status, created_at, updated_at)
-            )
-            conn.commit()
-
-            # Mostrar mensagem de sucesso
-            page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso!"))
-            page.snack_bar.open = True
-            page.update()
-
-        except Exception as ex:
-            print(f"Erro ao cadastrar CIN: {ex}")
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar CIN."))
-            page.snack_bar.open = True
-            page.update()
-
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-
-    # Campos de entrada para o cadastro de CIN
-    nome_field = ft.TextField(label="Nome", width=300)
-    cpf_field = ft.TextField(label="CPF", width=300)
-    cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
-
-    # Adicionar campos ao layout
-    page.add(
-        ft.Row(
-            controls=[
-                ft.Column(
-                    controls=[nome_field, cpf_field, cadastrar_btn],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.CENTER
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            expand=True
-        )
-    )
-
 
 def main_panel(page):
     page.clean()  # Limpa a tela antes de adicionar os novos controles
@@ -395,12 +346,11 @@ def main_panel(page):
             controls=[
                 ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
                 ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-                ft.ElevatedButton("Cadastrar Cin", on_click=lambda e: cadastro_cin_view(page)),
             ],
             spacing=20
         )
     )
-# Inicialização do App
+
 def main(page):
     page.title = "Sistema de Atendimentos"
     page.theme_mode = "light"
