@@ -472,18 +472,25 @@ def main_panel(page):
     
 
     menu = ft.AppBar(
-        title=ft.Text("Sistema de Atendimentos Sala Sensorial / ALECE", alignment=ft.MainAxisAlignment.END),  # Alinha o título à direita
-        actions=[  # Aqui você pode adicionar os botões ou outras ações
+        leading=ft.Icon(ft.icons.MENU),  # Exemplo de ícone de menu (opcional)
+        actions=[  
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
             ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
             ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
-        ]
+        ],
+        title=ft.Row(
+            controls=[
+                ft.Spacer(),  # Vai empurrar o título para a direita
+                ft.Text("Sistema de Atendimentos Sala Sensorial / ALECE", size=20, weight=ft.FontWeight.BOLD)
+            ],
+            alignment=ft.MainAxisAlignment.END  # Alinha o título à direita
+        )
     )
     
     page.appbar = menu
     page.update()
-
+    
 def main(page):
     page.title = "Sistema de Atendimentos"
     page.theme_mode = "dark"
