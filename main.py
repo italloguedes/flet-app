@@ -50,7 +50,7 @@ def init_db():
                 cpf TEXT,
                 email TEXT,
                 solicitante TEXT,
-                dia_atual TIMESTAMP
+                dia_atual TIMESTAMP,
                 horario TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -463,10 +463,19 @@ def consulta_atendimentos_view(page):
         )
     )
 
+
 def main_panel(page):
-               
+    
     def logout(e):
-        login_view(page)
+    # Limpa os dados de sessão ou estado do usuário
+    global user_session
+    user_session = None  # Exemplo: Zere a variável que guarda os dados do usuário
+    
+    # Limpa a interface atual
+    page.clear()
+    
+    # Volta para a tela de login
+    login_view(page)
 
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN"),
