@@ -392,21 +392,35 @@ def cadastro_cin_view(page):
 
 
 def main_panel(page):
-    page.clean()  # Limpa a tela antes de adicionar os novos controles
+    def navigate_to_consulta(e):
+        page.clean()
+        # Implementar tela de consulta
+        page.add(ft.Text("Tela de Consulta"))  
 
-    # Adiciona um painel fixo no topo da tela
-    top_panel = ft.Row(
-        controls=[
-            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+    def navigate_to_cadastro_atendimento(e):
+        page.clean()
+        cadastro_atendimento_view(page)
+
+    def navigate_to_cadastro_cin(e):
+        page.clean()
+        cadastro_cin_view(page)
+
+    def logout(e):
+        page.clean()
+        login_view(page)
+
+    menu = ft.AppBar(
+        title=ft.Text("Gestão de Atendimentos e CIN"),
+        actions=[
             ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastro_cin_view(page)),
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-        ],
-        alignment=ft.MainAxisAlignment.END,  # Alinha os botões à direita
-        spacing=20
+            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+        ]
     )
-    # Adiciona os painéis à página
-    page.add(top_panel)
+    page.appbar = menu
+    page.update()
+    
     
 def main(page):
     page.title = "Sistema de Atendimento"
