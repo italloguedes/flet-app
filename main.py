@@ -340,17 +340,22 @@ def consulta_atendimentos_view(page):
     )
 
 def main_panel(page):
-    page.clean()  # Limpa a tela antes de adicionar os novos controles
-    page.add(
-        ft.Row(
-            controls=[
-                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ],
-            spacing=20
-        )
-    )
+               
+    def logout(e):
+        login_view(page)
 
+    menu = ft.AppBar(
+        title=ft.Text("Gestão de Atendimentos e CIN"),
+        actions=[
+            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
+            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+        ]
+    )
+    page.appbar = menu
+    page.update()
+    
+    
 def main(page):
     page.title = "Sistema de Atendimentos"
     page.theme_mode = "dark"
