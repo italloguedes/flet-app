@@ -340,15 +340,29 @@ def consulta_atendimentos_view(page):
     )
 
 def main_panel(page):
-    page.clean()  # Limpa a tela antes de adicionar os novos controles
+    def logout(e):
+        page.clean()
+        login_view(page)
+
+    def abrir_formulario_cadastrar(e):
+        page.clean()
+        cadastrar_cin_view(page)
+
+    # Painel superior fixo
+    page.appbar = ft.AppBar(
+        title=ft.Text("Painel Administrativo"),
+        center_title=True,
+        bgcolor=ft.colors.BLUE,
+        actions=[
+            ft.ElevatedButton("Cadastrar CIN", on_click=abrir_formulario_cadastrar),
+            ft.ElevatedButton("Logout", on_click=logout),
+        ],
+    )
+    page.update()
+
+    # Conteúdo principal
     page.add(
-        ft.Row(
-            controls=[
-                ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-                ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-            ],
-            spacing=20
-        )
+        ft.Text("Bem-vindo ao Painel Administrativo", size=24, weight=ft.FontWeight.BOLD)
     )
 
 def main(page):
