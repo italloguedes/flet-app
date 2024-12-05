@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
 import os
-
+from fpdf import FPDF
 # Configuração do Banco de Dados no Supabase
 
 
