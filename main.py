@@ -75,10 +75,6 @@ def init_db():
         cursor.close()
         conn.close()
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import smtplib
-from datetime import datetime
 
 def enviar_email(destinatario, nome, cpf):
     assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
@@ -217,9 +213,6 @@ def login_view(page):
         )
     )
 
-from datetime import datetime
-import psycopg2
-
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         nome = nome_field.value
@@ -338,6 +331,65 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
+    
+def cadastro_cin_view(page):
+    def cadastrar_cin(e):
+        nome = nome_field.value
+        cpf = cpf_field.value
+        status = "Pronta"  # Status padrão
+        created_at = datetime.now()
+        updated_at = datetime.now()
+
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO cins (nome, cpf, status, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (nome, cpf, status, created_at, updated_at)
+            )
+            conn.commit()
+
+            # Mostrar mensagem de sucesso
+            page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso!"))
+            page.snack_bar.open = True
+            page.update()
+
+        except Exception as ex:
+            print(f"Erro ao cadastrar CIN: {ex}")
+            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar CIN."))
+            page.snack_bar.open = True
+            page.update()
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    # Campos de entrada para o cadastro de CIN
+    nome_field = ft.TextField(label="Nome", width=300)
+    cpf_field = ft.TextField(label="CPF", width=300)
+    cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
+
+    # Adicionar campos ao layout
+    page.add(
+        ft.Row(
+            controls=[
+                ft.Column(
+                    controls=[nome_field, cpf_field, cadastrar_btn],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            expand=True
+        )
+    )
+
 
 def main_panel(page):
     page.clean()  # Limpa a tela antes de adicionar os novos controles
@@ -346,25 +398,16 @@ def main_panel(page):
     top_panel = ft.Row(
         controls=[
             ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
-            ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastrar_cin(page)),
+            ft.ElevatedButton("Cadastrar CIN", on_click=lambda e: cadastro_cin_view(page)),
+            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
+            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
         ],
         alignment=ft.MainAxisAlignment.END,  # Alinha os botões à direita
         spacing=20
     )
-
-    # Adiciona o painel principal com as opções de consulta e cadastro de atendimento
-    main_content = ft.Row(
-        controls=[
-            ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
-            ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
-        ],
-        spacing=20
-    )
-
     # Adiciona os painéis à página
     page.add(top_panel)
-    page.add(main_content)
-
+    
 def main(page):
     page.title = "Sistema de Atendimento"
     login_view(page)
