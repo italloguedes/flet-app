@@ -215,14 +215,20 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        nome = nome_field.value
-        cpf = cpf_field.value
-        email = email_field.value
-        solicitante = solicitante_field.value
-        horario = datetime.now()
+        nome = nome_field.value.strip()
+        cpf = cpf_field.value.strip()
+        email = email_field.value.strip()
+        solicitante = solicitante_field.value.strip()
         dia_atual = datetime.now()
+        horario = datetime.now()
         created_at = datetime.now()
         updated_at = datetime.now()
+
+        if not nome or not cpf or not email or not solicitante:
+            page.snack_bar = ft.SnackBar(ft.Text("Todos os campos são obrigatórios!", color="red"))
+            page.snack_bar.open = True
+            page.update()
+            return
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
@@ -232,46 +238,53 @@ def cadastro_atendimento_view(page):
                 INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
+                (nome, cpf, email, solicitante, dia_atual, horario, created_at, updated_at)
             )
             conn.commit()
-            enviar_email(email, nome, cpf)
-            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
+
+            enviar_email(email, nome)
+            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!", color="green"))
             page.snack_bar.open = True
-            page.update()
-            
-            # Limpa os campos após o cadastro
-            nome_field.value = ""
-            cpf_field.value = ""
-            email_field.value = ""
-            solicitante_field.value = ""
-            page.update()
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
+            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar atendimento!", color="red"))
+            page.snack_bar.open = True
         finally:
-            cursor.close()
-            conn.close()
+            if 'cursor' in locals():
+                cursor.close()
+            if 'conn' in locals():
+                conn.close()
 
-    # Aqui você deve adicionar a lógica para criar os campos de entrada (nome_field, cpf_field, etc.)
-    # e adicionar o botão que chama a função cadastrar_atendimento quando clicado.
+        page.update()
 
+    nome_field = ft.TextField(label="Nome")
+    cpf_field = ft.TextField(label="CPF")
+    email_field = ft.TextField(label="Email")
+    solicitante_field = ft.TextField(label="Solicitante")
+    cadastro_btn = ft.ElevatedButton(
+        text="Cadastrar",
+        on_click=cadastrar_atendimento,
+        style=ft.ButtonStyle(color="white", bgcolor="#28A745")
+    )
 
-    nome_field = ft.TextField(label="Nome", width=300)
-    cpf_field = ft.TextField(label="CPF", width=300)
-    email_field = ft.TextField(label="Email", width=300)
-    solicitante_field = ft.TextField(label="Solicitante", width=300)
-    cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
     page.add(
-        ft.Row(
-            controls=[ 
-                ft.Column(
-                    controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
-                    spacing=20,  # Define o espaçamento entre os campos
-                    alignment=ft.MainAxisAlignment.CENTER
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            expand=True  # Expande para ocupar a tela
+        ft.Container(
+            content=ft.Column(
+                controls=[
+                    ft.Text("Cadastro de Atendimento", size=30, weight="bold", color="#333"),
+                    nome_field,
+                    cpf_field,
+                    email_field,
+                    solicitante_field,
+                    cadastro_btn
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ),
+            alignment=ft.alignment.center,
+            padding=30,
+            bgcolor="#F5F5F5",
+            border_radius=10
         )
     )
 
@@ -392,19 +405,7 @@ def cadastro_cin_view(page):
 
 
 def main_panel(page):
-    def navigate_to_consulta(e):
-        page.clean()
-        # Implementar tela de consulta
-        page.add(ft.Text("Tela de Consulta"))  
-
-    def navigate_to_cadastro_atendimento(e):
-        page.clean()
-        cadastro_atendimento_view(page)
-
-    def navigate_to_cadastro_cin(e):
-        page.clean()
-        cadastro_cin_view(page)
-
+    
     def logout(e):
         page.clean()
         login_view(page)
@@ -423,7 +424,11 @@ def main_panel(page):
     
     
 def main(page):
-    page.title = "Sistema de Atendimento"
+    page.title = "Sistema de Atendimentos"
+    page.theme_mode = "dark"
+    page.horizontal_alignment = "center"
+    page.vertical_alignment = "center"
+    init_db()
     login_view(page)
 
 ft.app(target=main)
