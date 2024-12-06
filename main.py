@@ -462,15 +462,12 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
-
-def main_panel(page):
-    
-    def logout(e):
+def logout(e):
         page.clean()  # Garante que a interface anterior é completamente limpa
         return login_view(page)
 
+def main_panel(page):
     
-
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN"),
         actions=[
