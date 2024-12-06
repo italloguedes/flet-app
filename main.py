@@ -83,56 +83,90 @@ def enviar_email(destinatario, nome, cpf, tipo_email):
         assunto = "Confirmação de Atendimento - Sala Sensorial/Alece"
         mensagem = f"""
         <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Confirmação de Atendimento</title>
-            <style>
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    background-color: #f4f4f9;
-                    color: #333;
-                    margin: 0;
-                    padding: 20px;
-                }}
-                .container {{
-                    max-width: 600px;
-                    margin: auto;
-                    background-color: white;
-                    border-radius: 8px;
-                    padding: 20px;
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                }}
-                h1 {{
-                    color: #4CAF50;
-                    font-size: 24px;
-                    margin-bottom: 10px;
-                }}
-                p {{
-                    line-height: 1.6;
-                    margin: 10px 0;
-                }}
-                .footer {{
-                    margin-top: 20px;
-                    font-size: 14px;
-                    color: #777;
-                    text-align: center;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Olá {nome},</h1>
-                <p>Seu atendimento foi realizado com sucesso!</p>
-                <p>Importante: o prazo médio para entrega da sua CIN é de 30 dias. Fique atento ao seu e-mail!</p>
-                <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
-            </div>
-            <div class="footer">
-                &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
-            </div>
-        </body>
-        </html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Atendimento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        p {
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+        }
+        .contact-info {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Confirmação de Atendimento</h1>
+        <p>Olá <span class="highlight">{nome}</span>, CPF - <span class="highlight">{cpf}</span>.</p>
+        <p>Seu atendimento foi realizado com sucesso e o prazo para retirada é de <span class="highlight">45 dias</span>.</p>
+        <p>Sua CIN estará disponível nas versões digital e física. O acesso pode ser feito pelo aplicativo ou site do <a href="https://www.gov.br" target="_blank">gov.br</a>.</p>
+        <div class="contact-info">
+            <p><strong>Local de retirada:</strong> Prédio da Assembleia Legislativa Anexo III, Sala Sensorial.</p>
+            <p>Endereço: Av. Pontes Vieira, 2300 - São João do Tauape, Fortaleza - CE, 60135-238.</p>
+            <p><strong>Horário:</strong> 08h às 11:30 e 13h às 16h.</p>
+        </div>
+        <p>Para dúvidas, entre em contato pelo telefone <span class="highlight">(85) 2180-6587</span>.</p>
+        <p>Retiradas por terceiros podem ser feitas por parentes de 1º ou 2º grau (pai, mãe, filho, irmãos, tios ou avós) mediante apresentação de documento original com foto e certidão de nascimento ou casamento do titular.</p>
+        <a href="https://www.gov.br" class="btn" target="_blank">Acessar gov.br</a>
+    </div>
+    <div class="footer">
+        &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
+    </div>
+</body>
+</html>
+
         """
     elif tipo_email == "cin_pronta":
         assunto = "CIN Pronta para Retirada - Sala Sensorial/Alece"
@@ -178,14 +212,20 @@ def enviar_email(destinatario, nome, cpf, tipo_email):
         </head>
         <body>
             <div class="container">
-                <h1>Olá {nome},</h1>
-                <p>Estamos felizes em informar que sua CIN (Carteira de Identidade Nacional) está pronta para retirada.</p>
-                <p><strong>Instruções para Retirada:</strong></p>
-                <p>Local: Assembleia Legislativa, Anexo III, Sala Sensorial</p>
-                <p>Endereço: Av. Pontes Vieira, 2300, Fortaleza - CE</p>
-                <p>Horário: 08h às 11:30 e 13h às 16h</p>
-                <p>Para mais informações, entre em contato pelo telefone (85) 2180-6587.</p>
-            </div>
+        <h1>Olá, {nome}!</h1>
+        <p>Informamos que sua CIN (Carteira de Identidade Nacional) está pronta para retirada.</p>
+        <div class="address">
+            <strong>Endereço de Retirada:</strong><br>
+            Assembleia Legislativa Anexo III,<br>
+            Sala Sensorial,<br>
+            Av. Pontes Vieira, 2300 - São João do Tauape,<br>
+            Fortaleza - CE, 60135-238.<br>
+            <strong>Horário:</strong> De 08h às 11:30 e 13h às 16h.
+        </div>
+        <p>Por favor, traga um documento original com foto para a retirada.</p>
+        <p>Atenciosamente,</p>
+        <p>Equipe de Atendimento</p>
+    </div>
             <div class="footer">
                 &copy; {datetime.now().year} Sala Sensorial - ALECE. Todos os direitos reservados.
             </div>
@@ -463,8 +503,8 @@ def consulta_atendimentos_view(page):
         )
     )
 def logout(e):
-        page.clean()  # Garante que a interface anterior é completamente limpa
-        return login_view(page)
+    page.clean()  # Garante que a interface anterior é completamente limpa
+    return login_view(page)
 
 def main_panel(page):
     
