@@ -499,7 +499,6 @@ def relatorio_cin_view(page):
         )
     )
     page.update()
-    
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
