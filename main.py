@@ -424,36 +424,73 @@ def cadastro_cin_view(page):
         )
     )
 
+def buscar_atendimentos(data_inicio, data_fim):
+    try:
+        # Conexão com o banco de dados
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        # Consulta por intervalo de datas
+        cursor.execute(
+            """
+            SELECT nome, cpf, solicitante, dia_atual
+            FROM atendimentos
+            WHERE dia_atual BETWEEN %s AND %s
+            """,
+            (data_inicio, data_fim)
+        )
+
+        # Retorna os resultados como uma lista de tuplas
+        resultados = cursor.fetchall()
+
+        # Fecha a conexão com o banco
+        cursor.close()
+        conn.close()
+
+        return resultados
+
+    except Exception as e:
+        print(f"Erro ao buscar atendimentos: {e}")
+        return []
+
+# Função para gerar o PDF
+def gerar_pdf(atendimentos, data_inicio, data_fim):
+    # Nome do arquivo PDF
+    nome_arquivo = f"relatorio_atendimentos_{data_inicio}_{data_fim}.pdf"
+    
+    # Cria o arquivo PDF com FPDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    
+    # Adiciona o título
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt=f"Relatório de Atendimentos de {data_inicio} a {data_fim}", ln=True, align="C")
+    
+    # Adiciona os dados dos atendimentos
+    pdf.ln(10)  # Pula uma linha
+    pdf.set_font("Arial", '', 12)
+    pdf.cell(50, 10, "Nome", border=1, align='C')
+    pdf.cell(50, 10, "CPF", border=1, align='C')
+    pdf.cell(50, 10, "Solicitante", border=1, align='C')
+    pdf.cell(50, 10, "Data", border=1, align='C')
+    pdf.ln(10)
+
+    for atendimento in atendimentos:
+        nome, cpf, solicitante, dia_atual = atendimento
+        pdf.cell(50, 10, nome, border=1)
+        pdf.cell(50, 10, cpf, border=1)
+        pdf.cell(50, 10, solicitante, border=1)
+        pdf.cell(50, 10, str(dia_atual), border=1)
+        pdf.ln(10)
+
+    # Salva o PDF no diretório atual
+    pdf.output(nome_arquivo)
+    print(f"PDF gerado: {nome_arquivo}")
+
+# Função para exibir a tela de relatório
 def relatorio_cin_view(page):
-    def buscar_atendimentos(data_inicio, data_fim):
-        try:
-            # Conexão com o banco de dados
-            conn = psycopg2.connect(**DB_CONFIG)
-            cursor = conn.cursor()
-
-            # Consulta por intervalo de datas
-            cursor.execute(
-                """
-                SELECT nome, cpf, solicitante, dia_atual
-                FROM atendimentos
-                WHERE dia_atual BETWEEN %s AND %s
-                """,
-                (data_inicio, data_fim)
-            )
-
-            # Retorna os resultados como uma lista de tuplas
-            resultados = cursor.fetchall()
-
-            # Fecha a conexão com o banco
-            cursor.close()
-            conn.close()
-
-            return resultados
-
-        except Exception as e:
-            print(f"Erro ao buscar atendimentos: {e}")
-            return []
-
+    # Definindo a lógica de gerar o relatório
     def gerar_relatorio(e):
         if not data_inicio.value or not data_fim.value:
             resultado.value = "Por favor, selecione as duas datas."
@@ -477,39 +514,6 @@ def relatorio_cin_view(page):
             resultado.value = f"Erro ao processar as datas: {ex}"
 
         page.update()
-
-    def gerar_pdf(atendimentos, data_inicio, data_fim):
-        # Nome do arquivo PDF
-        nome_arquivo = f"relatorio_atendimentos_{data_inicio}_{data_fim}.pdf"
-        
-        # Cria o arquivo PDF com FPDF
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        
-        # Adiciona o título
-        pdf.set_font("Arial", 'B', 16)
-        pdf.cell(200, 10, txt=f"Relatório de Atendimentos de {data_inicio} a {data_fim}", ln=True, align="C")
-        
-        # Adiciona os dados dos atendimentos
-        pdf.ln(10)  # Pula uma linha
-        pdf.set_font("Arial", '', 12)
-        pdf.cell(50, 10, "Nome", border=1, align='C')
-        pdf.cell(50, 10, "CPF", border=1, align='C')
-        pdf.cell(50, 10, "Solicitante", border=1, align='C')
-        pdf.cell(50, 10, "Data", border=1, align='C')
-        pdf.ln(10)
-
-        for atendimento in atendimentos:
-            nome, cpf, solicitante, dia_atual = atendimento
-            pdf.cell(50, 10, nome, border=1)
-            pdf.cell(50, 10, cpf, border=1)
-            pdf.cell(50, 10, solicitante, border=1)
-            pdf.cell(50, 10, str(dia_atual), border=1)
-            pdf.ln(10)
-
-        # Salva o PDF
-        pdf.output(nome_arquivo)
 
     # Componentes da view
     data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
