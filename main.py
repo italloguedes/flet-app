@@ -455,21 +455,17 @@ def relatorio_cin_view(page):
             return []
 
     def gerar_relatorio(e):
-        data_inicio = input_data_inicio.value
-        data_fim = input_data_fim.value
-
-        # Validações
-        if not data_inicio or not data_fim:
-            resultado.value = "Por favor, preencha as duas datas."
+        if not data_inicio.value or not data_fim.value:
+            resultado.value = "Por favor, selecione as duas datas."
             page.update()
             return
 
         try:
-            # Converte as datas para o formato esperado pelo banco (YYYY-MM-DD)
-            data_inicio = datetime.datetime.strptime(data_inicio, "%Y-%m-%d").date()
-            data_fim = datetime.datetime.strptime(data_fim, "%Y-%m-%d").date()
+            # Obtém as datas selecionadas no formato YYYY-MM-DD
+            data_inicio_selecionada = datetime.datetime.strptime(data_inicio.value, "%Y-%m-%d").date()
+            data_fim_selecionada = datetime.datetime.strptime(data_fim.value, "%Y-%m-%d").date()
 
-            atendimentos = buscar_atendimentos(data_inicio, data_fim)
+            atendimentos = buscar_atendimentos(data_inicio_selecionada, data_fim_selecionada)
             if atendimentos:
                 # Formata os resultados para exibição
                 resultado.value = "\n".join(
@@ -484,8 +480,8 @@ def relatorio_cin_view(page):
         page.update()
 
     # Componentes da view
-    input_data_inicio = ft.TextField(label="Data Início (YYYY-MM-DD)", width=200)
-    input_data_fim = ft.TextField(label="Data Fim (YYYY-MM-DD)", width=200)
+    data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
+    data_fim = ft.DatePicker(label="Data Fim", on_change=lambda e: page.update())
     botao_gerar = ft.ElevatedButton("Gerar Relatório", on_click=gerar_relatorio)
     resultado = ft.Text("")
 
@@ -495,15 +491,15 @@ def relatorio_cin_view(page):
         ft.Column(
             [
                 ft.Text("Gerar Relatório de CINs por Intervalo de Datas", size=20, weight="bold"),
-                input_data_inicio,
-                input_data_fim,
+                data_inicio,
+                data_fim,
                 botao_gerar,
                 resultado,
             ]
         )
     )
     page.update()
-
+    
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
