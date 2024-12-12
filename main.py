@@ -282,8 +282,8 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        page.clean()
         cadastro_atendimento_view(page)
+        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -344,8 +344,8 @@ def cadastro_atendimento_view(page):
     )
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
-        page.clean()
         cadastro_cin_view(page)
+        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         status = "Pronta"  # Status padrão
@@ -428,9 +428,8 @@ def cadastro_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
-        page.clean()
         consulta_atendimentos_view(page)
-        # Recupera o texto do campo de pesquisa
+        page.clean()
         consulta = consulta_field.value.strip()
 
         if consulta:  # Verifica se o campo de busca não está vazio
@@ -489,8 +488,9 @@ def consulta_atendimentos_view(page):
 def main_panel(page):
     
     def logout(e):
-        page.clean()  # Garante que a interface anterior é completamente limpa
         login_view(page)
+        page.clean()  # Garante que a interface anterior é completamente limpa
+        
     
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN"),
