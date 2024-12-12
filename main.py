@@ -425,12 +425,11 @@ def cadastro_cin_view(page):
         )
     )
 
-# Função para gerar o relatório em PDF
 def gerar_relatorio_pdf(dia_inicio, dia_fim):
     # Conectar ao Supabase
     conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
-    
+
     # Consulta no banco de dados para pegar os atendimentos dentro do intervalo de datas
     query = """
         SELECT nome, cpf, solicitante, dia_atual FROM atendimentos
@@ -439,21 +438,21 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     """
     cursor.execute(query, (dia_inicio, dia_fim))
     atendimentos = cursor.fetchall()
-    
+
     # Fechar a conexão
     cursor.close()
     conn.close()
-    
+
     # Criar o PDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    
+
     # Definir título
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(200, 10, txt="Relatório de Atendimentos", ln=True, align='C')
     pdf.ln(10)
-    
+
     # Definir cabeçalho da tabela
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(50, 10, 'Nome', 1)
@@ -461,7 +460,7 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     pdf.cell(50, 10, 'Solicitante', 1)
     pdf.cell(40, 10, 'Dia', 1)
     pdf.ln()
-    
+
     # Preencher a tabela com os dados dos atendimentos
     pdf.set_font("Arial", size=12)
     for atendimento in atendimentos:
@@ -470,12 +469,12 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
         pdf.cell(50, 10, atendimento[2], 1)
         pdf.cell(40, 10, atendimento[3].strftime("%Y-%m-%d"), 1)
         pdf.ln()
-    
+
     # Salvar o PDF em um arquivo
     filename = f"relatorio_atendimentos_{dia_inicio}_{dia_fim}.pdf"
     pdf.output(filename)
     print(f"Relatório gerado: {filename}")
-    
+
     return filename
 
 # Função para a tela de "Relatórios"
@@ -493,8 +492,8 @@ def relatorio_cin_view(page):
             page.add(ft.Text("Por favor, selecione as datas de início e fim."))
 
     # Calendário para selecionar as datas de início e fim
-    dia_inicio = ft.DatePicker()
-    dia_fim = ft.DatePicker()
+    dia_inicio = ft.DatePicker(label="Data Início")  # Utilizando DatePicker corretamente
+    dia_fim = ft.DatePicker(label="Data Fim")
     
     # Texto explicativo
     page.add(ft.Text("Selecione a Data de Início e a Data de Fim para gerar o relatório"))
@@ -506,7 +505,8 @@ def relatorio_cin_view(page):
     page.add(dia_inicio)
     page.add(dia_fim)
     page.add(generate_button)
-    page.update()
+    page.update()  # Atualizar a interface após adicionar os componentes
+
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
