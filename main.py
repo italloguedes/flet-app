@@ -283,7 +283,6 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        cadastro_atendimento_view(page)
         page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
@@ -345,7 +344,6 @@ def cadastro_atendimento_view(page):
     )
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
-        cadastro_cin_view(page)
         page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
@@ -510,7 +508,6 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
-        consulta_atendimentos_view(page)
         page.clean()
         consulta = consulta_field.value.strip()
 
