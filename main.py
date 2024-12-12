@@ -427,13 +427,33 @@ def cadastro_cin_view(page):
 def relatorio_cin_view(page):
     def buscar_atendimentos(data_inicio, data_fim):
         try:
-            response = supabase.table("atendimentos").select("*").gte("dia_atual", data_inicio).lte("dia_atual", data_fim).execute()
-            return response.data
+            # Conexão com o banco de dados
+            conn = psycopg2.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+
+            # Consulta por intervalo de datas
+            cursor.execute(
+                """
+                SELECT nome, cpf, solicitante, dia_atual
+                FROM atendimentos
+                WHERE dia_atual BETWEEN %s AND %s
+                """,
+                (data_inicio, data_fim)
+            )
+
+            # Retorna os resultados como uma lista de tuplas
+            resultados = cursor.fetchall()
+
+            # Fecha a conexão com o banco
+            cursor.close()
+            conn.close()
+
+            return resultados
+
         except Exception as e:
             print(f"Erro ao buscar atendimentos: {e}")
             return []
 
-    # Função chamada ao clicar no botão de gerar relatório
     def gerar_relatorio(e):
         data_inicio = input_data_inicio.value
         data_fim = input_data_fim.value
@@ -451,8 +471,9 @@ def relatorio_cin_view(page):
 
             atendimentos = buscar_atendimentos(data_inicio, data_fim)
             if atendimentos:
+                # Formata os resultados para exibição
                 resultado.value = "\n".join(
-                    [f"Nome: {a['nome']}, CPF: {a['cpf']}, Solicitante: {a['solicitante']}" for a in atendimentos]
+                    [f"Nome: {a[0]}, CPF: {a[1]}, Solicitante: {a[2]}, Data: {a[3]}" for a in atendimentos]
                 )
             else:
                 resultado.value = "Nenhum atendimento encontrado no intervalo informado."
