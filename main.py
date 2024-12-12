@@ -596,9 +596,9 @@ def consulta_atendimentos_view(page):
 
             # Limpar o campo de entrada após a consulta
             consulta_field.value = ""
-            page.clean()
-            consulta_atendimentos_view(page)
-            page.update()
+    page.clean()
+    consulta_atendimentos_view(page)
+    page.update()       
 
     # Campo de texto para busca
     consulta_field = ft.TextField(label="Nome ou CPF", width=300)
