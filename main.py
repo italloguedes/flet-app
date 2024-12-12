@@ -622,10 +622,12 @@ def consulta_atendimentos_view(page):
 def main_panel(page):
     
     def logout(e):
-        login_view(page)
-        page.clean()  # Garante que a interface anterior é completamente limpa
-        
-    
+        # Limpar qualquer dado de sessão ou variáveis de estado se necessário
+        login_view(page)  # Redireciona para a tela de login
+        page.clean()  # Limpa a interface atual
+        page.update()  # Atualiza a página para garantir que a interface de login seja carregada
+
+    # Criação da barra de navegação
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN - Sala Sensorial"),
         actions=[
@@ -633,11 +635,14 @@ def main_panel(page):
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
             ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
             ft.ElevatedButton("Relatórios", on_click=lambda e: relatorio_cin_view(page)),
-            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
+            ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),  # Função de logout
         ]
     )
+    
+    # Adiciona a barra de navegação à página
     page.appbar = menu
-    page.update()
+    page.update()  # Atualiza a interface para refletir as alterações
+
     
 def main(page):
     page.title = "Sistema de Atendimentos"
