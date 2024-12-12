@@ -546,7 +546,11 @@ def relatorio_cin_view(page):
 
 
 def consulta_atendimentos_view(page):
+    page.clean()
+    consulta_atendimentos_view(page)
+    page.update()
     def consultar_atendimentos(e):
+    
         consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
         if consulta:  # Verifica se o campo de busca não está vazio
