@@ -427,7 +427,7 @@ def cadastro_cin_view(page):
 # Função para gerar o relatório em PDF
 def gerar_relatorio_pdf(dia_inicio, dia_fim):
     # Conectar ao Supabase
-    conn = connect_to_supabase()
+    conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
     
     # Consulta no banco de dados para pegar os atendimentos dentro do intervalo de datas
