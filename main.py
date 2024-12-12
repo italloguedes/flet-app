@@ -424,6 +424,64 @@ def cadastro_cin_view(page):
         )
     )
 
+def relatorio_cin_view(page):
+    def buscar_atendimentos(data_inicio, data_fim):
+        try:
+            response = supabase.table("atendimentos").select("*").gte("dia_atual", data_inicio).lte("dia_atual", data_fim).execute()
+            return response.data
+        except Exception as e:
+            print(f"Erro ao buscar atendimentos: {e}")
+            return []
+
+    # Função chamada ao clicar no botão de gerar relatório
+    def gerar_relatorio(e):
+        data_inicio = input_data_inicio.value
+        data_fim = input_data_fim.value
+
+        # Validações
+        if not data_inicio or not data_fim:
+            resultado.value = "Por favor, preencha as duas datas."
+            page.update()
+            return
+
+        try:
+            # Converte as datas para o formato esperado pelo banco (YYYY-MM-DD)
+            data_inicio = datetime.datetime.strptime(data_inicio, "%Y-%m-%d").date()
+            data_fim = datetime.datetime.strptime(data_fim, "%Y-%m-%d").date()
+
+            atendimentos = buscar_atendimentos(data_inicio, data_fim)
+            if atendimentos:
+                resultado.value = "\n".join(
+                    [f"Nome: {a['nome']}, CPF: {a['cpf']}, Solicitante: {a['solicitante']}" for a in atendimentos]
+                )
+            else:
+                resultado.value = "Nenhum atendimento encontrado no intervalo informado."
+
+        except Exception as ex:
+            resultado.value = f"Erro ao processar as datas: {ex}"
+
+        page.update()
+
+    # Componentes da view
+    input_data_inicio = ft.TextField(label="Data Início (YYYY-MM-DD)", width=200)
+    input_data_fim = ft.TextField(label="Data Fim (YYYY-MM-DD)", width=200)
+    botao_gerar = ft.ElevatedButton("Gerar Relatório", on_click=gerar_relatorio)
+    resultado = ft.Text("")
+
+    # Adiciona os componentes à página
+    page.clean()
+    page.add(
+        ft.Column(
+            [
+                ft.Text("Gerar Relatório de CINs por Intervalo de Datas", size=20, weight="bold"),
+                input_data_inicio,
+                input_data_fim,
+                botao_gerar,
+                resultado,
+            ]
+        )
+    )
+    page.update()
 
 
 def consulta_atendimentos_view(page):
@@ -493,11 +551,12 @@ def main_panel(page):
         
     
     menu = ft.AppBar(
-        title=ft.Text("Gestão de Atendimentos e CIN"),
+        title=ft.Text("Gestão de Atendimentos e CIN - Sala Sensorial"),
         actions=[
             ft.ElevatedButton("Consulta", on_click=lambda e: consulta_atendimentos_view(page)),
             ft.ElevatedButton("Cadastro de Atendimento", on_click=lambda e: cadastro_atendimento_view(page)),
             ft.ElevatedButton("Cadastro CINS", on_click=lambda e: cadastro_cin_view(page)),
+            ft.ElevatedButton("Relatórios", on_click=lambda e: relatorio_cin_view(page)),
             ft.ElevatedButton("Logout", on_click=lambda e: logout(page)),
         ]
     )
