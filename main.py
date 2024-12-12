@@ -9,9 +9,6 @@ import hashlib
 import os
 
 # Configuração do Banco de Dados no Supabase
-
-
-# Configuração do banco de dados
 DB_CONFIG = {
     "host": os.getenv("DB_HOST"),  # Usando variável de ambiente ou valor padrão
     "port": int(os.getenv("DB_PORT")),  # Usando variável de ambiente ou valor padrão
@@ -231,6 +228,7 @@ def hash_password(password):
 # Funções de Tela
 def login_view(page):
     def validar_login(e):
+        page.clean()
         email = email_field.value.strip()
         senha = senha_field.value.strip()
         senha_hashed = hash_password(senha)  # Gerar o hash da senha
@@ -284,63 +282,68 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
+        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
         solicitante = solicitante_field.value
-        horario = datetime.now()
         dia_atual = datetime.now()
-        created_at = datetime.now()
-        updated_at = datetime.now()
+        horario = datetime.now()
 
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, dia_atual, horario)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
+                (nome, cpf, email, solicitante, dia_atual, horario)
             )
             conn.commit()
+            # Enviar e-mail de confirmação
             enviar_email(email, nome, cpf, "atendimento")
-            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso!"))
+
+            # Mostrar mensagem de sucesso
+            page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso e e-mail enviado!"))
             page.snack_bar.open = True
             page.update()
-            
-            # Limpa os campos após o cadastro
-            nome_field.value = ""
-            cpf_field.value = ""
-            email_field.value = ""
-            solicitante_field.value = ""
-            page.update()
+
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
+            page.snack_bar = ft.SnackBar(ft.Text("Erro ao cadastrar atendimento. Tente novamente!"))
+            page.snack_bar.open = True
+            page.update()
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
-    nome_field = ft.TextField(label="Nome", width=300)
+    # Campos de entrada para cadastro
+    nome_field = ft.TextField(label="Nome", autofocus=True, width=300)
     cpf_field = ft.TextField(label="CPF", width=300)
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
+
+    # Adicionando os campos à página
     page.add(
         ft.Row(
-            controls=[ 
+            controls=[
                 ft.Column(
                     controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
-                    spacing=20,  # Define o espaçamento entre os campos
+                    spacing=20,
                     alignment=ft.MainAxisAlignment.CENTER
                 )
             ],
             alignment=ft.MainAxisAlignment.CENTER,
-            expand=True  # Expande para ocupar a tela
+            expand=True
         )
     )
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
+        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         status = "Pronta"  # Status padrão
@@ -423,6 +426,7 @@ def cadastro_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
+        page.clean()
         # Recupera o texto do campo de pesquisa
         consulta = consulta_field.value.strip()
 
