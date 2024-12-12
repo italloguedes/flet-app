@@ -345,8 +345,8 @@ def cadastro_atendimento_view(page):
     )
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
-        nome = nome_field.value
-        cpf = cpf_field.value
+        nome = nome_field.value.strip()
+        cpf = cpf_field.value.strip()
         status = "Pronta"  # Status padrão
         created_at = datetime.now()
         updated_at = datetime.now()
@@ -385,9 +385,20 @@ def cadastro_cin_view(page):
                 except Exception as ex_email:
                     print(f"Erro ao enviar e-mail: {ex_email}")
                     page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada, mas houve erro ao enviar o e-mail."))
+
             else:
-                page.snack_bar = ft.SnackBar(ft.Text("CPF não encontrado na tabela de atendimentos."))
-            
+                # Caso o CPF não seja encontrado, apenas insere a CIN no banco de dados
+                cursor.execute(
+                    """
+                    INSERT INTO cins (nome, cpf, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (nome, cpf, status, created_at, updated_at)
+                )
+                conn.commit()
+
+                page.snack_bar = ft.SnackBar(ft.Text("CIN cadastrada com sucesso, mas CPF não estava registrado nos atendimentos."))
+
             page.snack_bar.open = True
             page.update()
 
@@ -398,12 +409,16 @@ def cadastro_cin_view(page):
             page.update()
 
         finally:
+            # Fecha conexões com o banco de dados
             if cursor:
                 cursor.close()
             if conn:
                 conn.close()
-                
-        page.update()                
+
+            # Limpa os campos de entrada
+            nome_field.value = ""
+            cpf_field.value = ""
+            page.update()
 
     # Campos de entrada para o cadastro de CIN
     nome_field = ft.TextField(label="Nome", width=300)
@@ -424,6 +439,7 @@ def cadastro_cin_view(page):
             expand=True
         )
     )
+
 
 PDF_DIRECTORY = "./public/relatorios/"
 
