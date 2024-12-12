@@ -471,9 +471,8 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     # Salvar o PDF em um arquivo
     filename = f"relatorio_atendimentos_{dia_inicio}_{dia_fim}.pdf"
     pdf.output(filename)
-    print(f"Relatório gerado: {filename}")
-
     return filename
+
 
 # Função para a tela de "Relatórios"
 def relatorio_cin_view(page):
@@ -494,25 +493,50 @@ def relatorio_cin_view(page):
 
             # Gerar o relatório e mostrar o nome do arquivo gerado
             relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
-            page.add(ft.Text(f"Relatório gerado: {relatorio}"))
+
+            # Criar um link para download
+            download_link = ft.Text(
+                f"Relatório gerado: {relatorio}",
+                url=f"./{relatorio}",  # Caminho relativo
+                style=ft.TextStyle(color="blue", decoration="underline"),
+            )
+            page.add(download_link)
+
         except ValueError:
             page.add(ft.Text("Erro: Por favor, insira as datas no formato 'YYYY-MM-DD'."))
 
     # Texto explicativo para as datas
     page.add(ft.Text("Digite a Data de Início e a Data de Fim para gerar o relatório no formato 'YYYY-MM-DD'"))
 
-    # Campos de entrada para data de início e fim
-    dia_inicio = ft.TextField(label="Data Início (YYYY-MM-DD)", hint_text="Ex: 2024-12-01")
-    dia_fim = ft.TextField(label="Data Fim (YYYY-MM-DD)", hint_text="Ex: 2024-12-31")
+    # Campos de entrada para data de início e fim com tamanho ajustado
+    dia_inicio = ft.TextField(
+        label="Data Início (YYYY-MM-DD)",
+        hint_text="Ex: 2024-12-01",
+        width=200
+    )
+    dia_fim = ft.TextField(
+        label="Data Fim (YYYY-MM-DD)",
+        hint_text="Ex: 2024-12-31",
+        width=200
+    )
 
     # Botão para gerar o relatório
     generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
 
-    # Adicionando os componentes à página
-    page.add(dia_inicio)
-    page.add(dia_fim)
-    page.add(generate_button)
+    # Adicionando os componentes à página com espaçamento adequado
+    page.add(ft.Column(
+        controls=[
+            ft.Text("Selecione a Data de Início e a Data de Fim para gerar o relatório"),
+            dia_inicio,
+            dia_fim,
+            generate_button
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=20  # Espaçamento entre os componentes
+    ))
+
     page.update()
+
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
