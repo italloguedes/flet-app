@@ -423,12 +423,18 @@ def cadastro_cin_view(page):
         )
     )
 
+PDF_DIRECTORY = "./public/relatorios/"
+
+
 def gerar_relatorio_pdf(dia_inicio, dia_fim):
+    # Criar o diretório caso ele não exista
+    os.makedirs(PDF_DIRECTORY, exist_ok=True)
+
     # Conectar ao Supabase
     conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
 
-    # Consulta no banco de dados para pegar os atendimentos dentro do intervalo de datas
+    # Consulta no banco de dados
     query = """
         SELECT nome, cpf, solicitante, dia_atual FROM atendimentos
         WHERE dia_atual BETWEEN %s AND %s
@@ -437,7 +443,7 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     cursor.execute(query, (dia_inicio, dia_fim))
     atendimentos = cursor.fetchall()
 
-    # Fechar a conexão
+    # Fechar conexão com o banco
     cursor.close()
     conn.close()
 
@@ -451,7 +457,7 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     pdf.cell(200, 10, txt="Relatório de Atendimentos", ln=True, align='C')
     pdf.ln(10)
 
-    # Definir cabeçalho da tabela
+    # Cabeçalho da tabela
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(50, 10, 'Nome', 1)
     pdf.cell(50, 10, 'CPF', 1)
@@ -459,7 +465,7 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     pdf.cell(40, 10, 'Dia', 1)
     pdf.ln()
 
-    # Preencher a tabela com os dados dos atendimentos
+    # Dados dos atendimentos
     pdf.set_font("Arial", size=12)
     for atendimento in atendimentos:
         pdf.cell(50, 10, atendimento[0], 1)
@@ -468,22 +474,21 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
         pdf.cell(40, 10, atendimento[3].strftime("%Y-%m-%d"), 1)
         pdf.ln()
 
-    # Salvar o PDF em um arquivo
-    filename = f"relatorio_atendimentos_{dia_inicio}_{dia_fim}.pdf"
-    pdf.output(filename)
-    return filename
+    # Salvar o PDF
+    filename = f"relatorio_{dia_inicio}_{dia_fim}.pdf"
+    filepath = os.path.join(PDF_DIRECTORY, filename)
+    pdf.output(filepath)
+
+    return filename  # Retorna o nome do arquivo
 
 
-# Função para a tela de "Relatórios"
 def relatorio_cin_view(page):
-    # Função de clique para gerar relatório
     def on_click_generate_report(e):
-        # Obter as datas inseridas manualmente
         dia_inicio_str = dia_inicio.value
         dia_fim_str = dia_fim.value
 
-        # Validar o formato das datas inseridas
         try:
+            # Validar datas
             dia_inicio_date = datetime.strptime(dia_inicio_str, "%Y-%m-%d")
             dia_fim_date = datetime.strptime(dia_fim_str, "%Y-%m-%d")
 
@@ -491,49 +496,34 @@ def relatorio_cin_view(page):
                 page.add(ft.Text("Erro: A data de início não pode ser maior que a data de fim."))
                 return
 
-            # Gerar o relatório e mostrar o nome do arquivo gerado
+            # Gerar relatório
             relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
 
-            # Criar um botão para download do relatório
-            download_button = ft.TextButton(
-                text=f"Baixar Relatório: {relatorio}",
-                on_click=lambda _: page.launch_url(f"./{relatorio}")  # Abre o PDF gerado
+            # Adicionar botão para download
+            download_link = ft.TextButton(
+                text="Baixar Relatório",
+                on_click=lambda _: page.launch_url(f"/relatorios/{relatorio}")
             )
-            page.add(download_button)
+            page.add(download_link)
 
         except ValueError:
-            page.add(ft.Text("Erro: Por favor, insira as datas no formato 'YYYY-MM-DD'."))
+            page.add(ft.Text("Erro: Insira datas válidas no formato YYYY-MM-DD."))
 
-    # Texto explicativo para as datas
-    page.add(ft.Text("Digite a Data de Início e a Data de Fim para gerar o relatório no formato 'YYYY-MM-DD'"))
-
-    # Campos de entrada para data de início e fim com tamanho ajustado
-    dia_inicio = ft.TextField(
-        label="Data Início (YYYY-MM-DD)",
-        hint_text="Ex: 2024-12-01",
-        width=200
-    )
-    dia_fim = ft.TextField(
-        label="Data Fim (YYYY-MM-DD)",
-        hint_text="Ex: 2024-12-31",
-        width=200
-    )
-
-    # Botão para gerar o relatório
+    # UI
+    dia_inicio = ft.TextField(label="Data Início (YYYY-MM-DD)", width=200)
+    dia_fim = ft.TextField(label="Data Fim (YYYY-MM-DD)", width=200)
     generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
 
-    # Adicionando os componentes à página com espaçamento adequado
     page.add(ft.Column(
         controls=[
-            ft.Text("Selecione a Data de Início e a Data de Fim para gerar o relatório"),
+            ft.Text("Selecione a Data de Início e a Data de Fim"),
             dia_inicio,
             dia_fim,
             generate_button
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        spacing=20  # Espaçamento entre os componentes
+        spacing=20,
+        alignment=ft.MainAxisAlignment.CENTER
     ))
-
     page.update()
 
 
