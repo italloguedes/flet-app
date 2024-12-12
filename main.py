@@ -467,10 +467,9 @@ def relatorio_cin_view(page):
 
             atendimentos = buscar_atendimentos(data_inicio_selecionada, data_fim_selecionada)
             if atendimentos:
-                # Formata os resultados para exibição
-                resultado.value = "\n".join(
-                    [f"Nome: {a[0]}, CPF: {a[1]}, Solicitante: {a[2]}, Data: {a[3]}" for a in atendimentos]
-                )
+                # Gerar PDF com os dados
+                gerar_pdf(atendimentos, data_inicio_selecionada, data_fim_selecionada)
+                resultado.value = "Relatório gerado com sucesso!"
             else:
                 resultado.value = "Nenhum atendimento encontrado no intervalo informado."
 
@@ -479,9 +478,42 @@ def relatorio_cin_view(page):
 
         page.update()
 
+    def gerar_pdf(atendimentos, data_inicio, data_fim):
+        # Nome do arquivo PDF
+        nome_arquivo = f"relatorio_atendimentos_{data_inicio}_{data_fim}.pdf"
+        
+        # Cria o arquivo PDF com FPDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+        
+        # Adiciona o título
+        pdf.set_font("Arial", 'B', 16)
+        pdf.cell(200, 10, txt=f"Relatório de Atendimentos de {data_inicio} a {data_fim}", ln=True, align="C")
+        
+        # Adiciona os dados dos atendimentos
+        pdf.ln(10)  # Pula uma linha
+        pdf.set_font("Arial", '', 12)
+        pdf.cell(50, 10, "Nome", border=1, align='C')
+        pdf.cell(50, 10, "CPF", border=1, align='C')
+        pdf.cell(50, 10, "Solicitante", border=1, align='C')
+        pdf.cell(50, 10, "Data", border=1, align='C')
+        pdf.ln(10)
+
+        for atendimento in atendimentos:
+            nome, cpf, solicitante, dia_atual = atendimento
+            pdf.cell(50, 10, nome, border=1)
+            pdf.cell(50, 10, cpf, border=1)
+            pdf.cell(50, 10, solicitante, border=1)
+            pdf.cell(50, 10, str(dia_atual), border=1)
+            pdf.ln(10)
+
+        # Salva o PDF
+        pdf.output(nome_arquivo)
+
     # Componentes da view
-    data_inicio = ft.DatePicker(hint_text="Data Início", on_change=lambda e: page.update())
-    data_fim = ft.DatePicker(hint_text="Data Fim", on_change=lambda e: page.update())
+    data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
+    data_fim = ft.DatePicker(label="Data Fim", on_change=lambda e: page.update())
     botao_gerar = ft.ElevatedButton("Gerar Relatório", on_click=gerar_relatorio)
     resultado = ft.Text("")
 
