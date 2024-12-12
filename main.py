@@ -283,7 +283,6 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -344,7 +343,6 @@ def cadastro_atendimento_view(page):
     )
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
-        page.clean()
         nome = nome_field.value
         cpf = cpf_field.value
         status = "Pronta"  # Status padrão
@@ -529,7 +527,6 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
-        page.clean()
         consulta = consulta_field.value.strip()
 
         if consulta:  # Verifica se o campo de busca não está vazio
