@@ -547,6 +547,9 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
+        page.clean()
+        consulta_atendimentos_view(page)
+        page.update()       
     
         consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
@@ -596,10 +599,7 @@ def consulta_atendimentos_view(page):
 
             # Limpar o campo de entrada após a consulta
             consulta_field.value = ""
-    page.clean()
-    consulta_atendimentos_view(page)
-    page.update()       
-
+    
     # Campo de texto para busca
     consulta_field = ft.TextField(label="Nome ou CPF", width=300)
 
