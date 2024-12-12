@@ -494,13 +494,12 @@ def relatorio_cin_view(page):
             # Gerar o relatório e mostrar o nome do arquivo gerado
             relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
 
-            # Criar um link para download
-            download_link = ft.Text(
-                f"Relatório gerado: {relatorio}",
-                url=f"./{relatorio}",  # Caminho relativo
-                style=ft.TextStyle(color="blue", decoration="underline"),
+            # Criar um botão para download do relatório
+            download_button = ft.TextButton(
+                text=f"Baixar Relatório: {relatorio}",
+                on_click=lambda _: page.launch_url(f"./{relatorio}")  # Abre o PDF gerado
             )
-            page.add(download_link)
+            page.add(download_button)
 
         except ValueError:
             page.add(ft.Text("Erro: Por favor, insira as datas no formato 'YYYY-MM-DD'."))
