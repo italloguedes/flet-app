@@ -527,7 +527,7 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
-        consulta = consulta_field.value.strip()
+        consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
         if consulta:  # Verifica se o campo de busca não está vazio
             try:
@@ -544,29 +544,46 @@ def consulta_atendimentos_view(page):
                 atendimentos = cursor.fetchall()
 
                 if atendimentos:
-                    # Exibe os resultados encontrados
-                    resultados = "\n".join([f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[4]}, Horário: {a[5]}" for a in atendimentos])
-                    page.snack_bar = ft.SnackBar(ft.Text(f"Atendimentos encontrados:\n{resultados}"))
-                    page.snack_bar.open = True
-                    page.update()
-                else:
-                    page.snack_bar = ft.SnackBar(ft.Text("Nenhum atendimento encontrado."))
-                    page.snack_bar.open = True
-                    page.update()
+                    # Exibe os resultados encontrados em uma lista formatada
+                    resultados = [
+                        f"Nome: {a[1]}, CPF: {a[2]}, Solicitante: {a[4]}, Horário: {a[5]}"
+                        for a in atendimentos
+                    ]
+                    resultados_text = "\n".join(resultados)
 
+                    # Exibir resultados em um SnackBar
+                    page.snack_bar = ft.SnackBar(
+                        content=ft.Text(f"Atendimentos encontrados:\n\n{resultados_text}")
+                    )
+                else:
+                    # Mensagem caso nenhum atendimento seja encontrado
+                    page.snack_bar = ft.SnackBar(
+                        content=ft.Text("Nenhum atendimento encontrado.")
+                    )
             except Exception as ex:
                 print(f"Erro ao consultar atendimentos: {ex}")
-                page.snack_bar = ft.SnackBar(ft.Text("Erro ao realizar a consulta."))
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text("Erro ao realizar a consulta.")
+                )
+            finally:
                 page.snack_bar.open = True
                 page.update()
-            finally:
+
+                # Fecha conexões com o banco
                 cursor.close()
                 conn.close()
 
+            # Limpar o campo de entrada após a consulta
+            consulta_field.value = ""
+            page.update()
+
+    # Campo de texto para busca
     consulta_field = ft.TextField(label="Nome ou CPF", width=300)
+
+    # Botão para realizar a consulta
     consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
 
-    # Adiciona os controles da busca na tela
+    # Layout da interface
     page.add(
         ft.Row(
             controls=[
@@ -580,6 +597,7 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
+
 
 
 def main_panel(page):
