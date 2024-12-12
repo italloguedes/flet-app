@@ -480,39 +480,29 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
 
 # Função para a tela de "Relatórios"
 def relatorio_cin_view(page):
+    # Função de clique para gerar relatório
     def on_click_generate_report(e):
-        # Exemplo: gerando relatório de janeiro de 2024 até dezembro de 2024
-        dia_inicio = datetime(2024, 1, 1)
-        dia_fim = datetime(2024, 12, 31)
-        
-        # Gerar o relatório e mostrar o nome do arquivo gerado
-        relatorio = gerar_relatorio_pdf(dia_inicio, dia_fim)
-        page.add(ft.Text(f"Relatório gerado: {relatorio}"))
+        if dia_inicio.value and dia_fim.value:
+            dia_inicio_date = datetime.strptime(dia_inicio.value, "%Y-%m-%d")
+            dia_fim_date = datetime.strptime(dia_fim.value, "%Y-%m-%d")
+            
+            # Gerar o relatório e mostrar o nome do arquivo gerado
+            relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
+            page.add(ft.Text(f"Relatório gerado: {relatorio}"))
+        else:
+            page.add(ft.Text("Por favor, selecione as datas de início e fim."))
+
+    # Calendários para selecionar as datas de início e fim
+    global dia_inicio, dia_fim
+    dia_inicio = ft.DatePicker(label="Data Início")
+    dia_fim = ft.DatePicker(label="Data Fim")
     
+    # Botão para gerar o relatório
+    generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
+
     # Interface de relatórios
-    page.add(ft.Text("Gerar Relatório de Atendimentos"))
-    page.add(ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report))
+    page.add(dia_inicio, dia_fim, generate_button)
 
-    # Componentes da view
-    data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
-    data_fim = ft.DatePicker(label="Data Fim", on_change=lambda e: page.update())
-    botao_gerar = ft.ElevatedButton("Gerar Relatório", on_click=gerar_relatorio)
-    resultado = ft.Text("")
-
-    # Adiciona os componentes à página
-    page.clean()
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Gerar Relatório de CINs por Intervalo de Datas", size=20, weight="bold"),
-                data_inicio,
-                data_fim,
-                botao_gerar,
-                resultado,
-            ]
-        )
-    )
-    page.update()
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
