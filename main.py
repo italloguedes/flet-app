@@ -479,26 +479,31 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
 def relatorio_cin_view(page):
     # Função de clique para gerar relatório
     def on_click_generate_report(e):
-        if dia_inicio.value and dia_fim.value:
-            dia_inicio_date = datetime.strptime(dia_inicio.value, "%Y-%m-%d")
-            dia_fim_date = datetime.strptime(dia_fim.value, "%Y-%m-%d")
-            
+        # Obter as datas inseridas manualmente
+        dia_inicio_str = dia_inicio.value
+        dia_fim_str = dia_fim.value
+
+        # Validar o formato das datas inseridas
+        try:
+            dia_inicio_date = datetime.strptime(dia_inicio_str, "%Y-%m-%d")
+            dia_fim_date = datetime.strptime(dia_fim_str, "%Y-%m-%d")
+
+            if dia_inicio_date > dia_fim_date:
+                page.add(ft.Text("Erro: A data de início não pode ser maior que a data de fim."))
+                return
+
             # Gerar o relatório e mostrar o nome do arquivo gerado
             relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
             page.add(ft.Text(f"Relatório gerado: {relatorio}"))
-        else:
-            page.add(ft.Text("Por favor, selecione as datas de início e fim."))
+        except ValueError:
+            page.add(ft.Text("Erro: Por favor, insira as datas no formato 'YYYY-MM-DD'."))
 
     # Texto explicativo para as datas
-    page.add(ft.Text("Selecione a Data de Início e a Data de Fim para gerar o relatório"))
+    page.add(ft.Text("Digite a Data de Início e a Data de Fim para gerar o relatório no formato 'YYYY-MM-DD'"))
 
-    # Campo de seleção de data de início
-    page.add(ft.Text("Data Início:"))
-    dia_inicio = ft.DatePicker()
-
-    # Campo de seleção de data de fim
-    page.add(ft.Text("Data Fim:"))
-    dia_fim = ft.DatePicker()
+    # Campos de entrada para data de início e fim
+    dia_inicio = ft.TextField(label="Data Início (YYYY-MM-DD)", hint_text="Ex: 2024-12-01")
+    dia_fim = ft.TextField(label="Data Fim (YYYY-MM-DD)", hint_text="Ex: 2024-12-31")
 
     # Botão para gerar o relatório
     generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
@@ -507,7 +512,7 @@ def relatorio_cin_view(page):
     page.add(dia_inicio)
     page.add(dia_fim)
     page.add(generate_button)
-    page.update()  # Atualizar a interface após adicionar os componentes
+    page.update()
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
