@@ -424,96 +424,73 @@ def cadastro_cin_view(page):
         )
     )
 
-def buscar_atendimentos(data_inicio, data_fim):
-    try:
-        # Conexão com o banco de dados
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-
-        # Consulta por intervalo de datas
-        cursor.execute(
-            """
-            SELECT nome, cpf, solicitante, dia_atual
-            FROM atendimentos
-            WHERE dia_atual BETWEEN %s AND %s
-            """,
-            (data_inicio, data_fim)
-        )
-
-        # Retorna os resultados como uma lista de tuplas
-        resultados = cursor.fetchall()
-
-        # Fecha a conexão com o banco
-        cursor.close()
-        conn.close()
-
-        return resultados
-
-    except Exception as e:
-        print(f"Erro ao buscar atendimentos: {e}")
-        return []
-
-# Função para gerar o PDF
-def gerar_pdf(atendimentos, data_inicio, data_fim):
-    # Nome do arquivo PDF
-    nome_arquivo = f"relatorio_atendimentos_{data_inicio}_{data_fim}.pdf"
+# Função para gerar o relatório em PDF
+def gerar_relatorio_pdf(dia_inicio, dia_fim):
+    # Conectar ao Supabase
+    conn = connect_to_supabase()
+    cursor = conn.cursor()
     
-    # Cria o arquivo PDF com FPDF
+    # Consulta no banco de dados para pegar os atendimentos dentro do intervalo de datas
+    query = """
+        SELECT nome, cpf, solicitante, dia_atual FROM atendimentos
+        WHERE dia_atual BETWEEN %s AND %s
+        ORDER BY dia_atual
+    """
+    cursor.execute(query, (dia_inicio, dia_fim))
+    atendimentos = cursor.fetchall()
+    
+    # Fechar a conexão
+    cursor.close()
+    conn.close()
+    
+    # Criar o PDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     
-    # Adiciona o título
+    # Definir título
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, txt=f"Relatório de Atendimentos de {data_inicio} a {data_fim}", ln=True, align="C")
-    
-    # Adiciona os dados dos atendimentos
-    pdf.ln(10)  # Pula uma linha
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(50, 10, "Nome", border=1, align='C')
-    pdf.cell(50, 10, "CPF", border=1, align='C')
-    pdf.cell(50, 10, "Solicitante", border=1, align='C')
-    pdf.cell(50, 10, "Data", border=1, align='C')
+    pdf.cell(200, 10, txt="Relatório de Atendimentos", ln=True, align='C')
     pdf.ln(10)
-
+    
+    # Definir cabeçalho da tabela
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(50, 10, 'Nome', 1)
+    pdf.cell(50, 10, 'CPF', 1)
+    pdf.cell(50, 10, 'Solicitante', 1)
+    pdf.cell(40, 10, 'Dia', 1)
+    pdf.ln()
+    
+    # Preencher a tabela com os dados dos atendimentos
+    pdf.set_font("Arial", size=12)
     for atendimento in atendimentos:
-        nome, cpf, solicitante, dia_atual = atendimento
-        pdf.cell(50, 10, nome, border=1)
-        pdf.cell(50, 10, cpf, border=1)
-        pdf.cell(50, 10, solicitante, border=1)
-        pdf.cell(50, 10, str(dia_atual), border=1)
-        pdf.ln(10)
+        pdf.cell(50, 10, atendimento[0], 1)
+        pdf.cell(50, 10, atendimento[1], 1)
+        pdf.cell(50, 10, atendimento[2], 1)
+        pdf.cell(40, 10, atendimento[3].strftime("%Y-%m-%d"), 1)
+        pdf.ln()
+    
+    # Salvar o PDF em um arquivo
+    filename = f"relatorio_atendimentos_{dia_inicio}_{dia_fim}.pdf"
+    pdf.output(filename)
+    print(f"Relatório gerado: {filename}")
+    
+    return filename
 
-    # Salva o PDF no diretório atual
-    pdf.output(nome_arquivo)
-    print(f"PDF gerado: {nome_arquivo}")
-
-# Função para exibir a tela de relatório
+# Função para a tela de "Relatórios"
 def relatorio_cin_view(page):
-    # Definindo a lógica de gerar o relatório
-    def gerar_relatorio(e):
-        if not data_inicio.value or not data_fim.value:
-            resultado.value = "Por favor, selecione as duas datas."
-            page.update()
-            return
-
-        try:
-            # Obtém as datas selecionadas no formato YYYY-MM-DD
-            data_inicio_selecionada = datetime.datetime.strptime(data_inicio.value, "%Y-%m-%d").date()
-            data_fim_selecionada = datetime.datetime.strptime(data_fim.value, "%Y-%m-%d").date()
-
-            atendimentos = buscar_atendimentos(data_inicio_selecionada, data_fim_selecionada)
-            if atendimentos:
-                # Gerar PDF com os dados
-                gerar_pdf(atendimentos, data_inicio_selecionada, data_fim_selecionada)
-                resultado.value = "Relatório gerado com sucesso!"
-            else:
-                resultado.value = "Nenhum atendimento encontrado no intervalo informado."
-
-        except Exception as ex:
-            resultado.value = f"Erro ao processar as datas: {ex}"
-
-        page.update()
+    def on_click_generate_report(e):
+        # Exemplo: gerando relatório de janeiro de 2024 até dezembro de 2024
+        dia_inicio = datetime(2024, 1, 1)
+        dia_fim = datetime(2024, 12, 31)
+        
+        # Gerar o relatório e mostrar o nome do arquivo gerado
+        relatorio = gerar_relatorio_pdf(dia_inicio, dia_fim)
+        page.add(ft.Text(f"Relatório gerado: {relatorio}"))
+    
+    # Interface de relatórios
+    page.add(ft.Text("Gerar Relatório de Atendimentos"))
+    page.add(ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report))
 
     # Componentes da view
     data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
