@@ -502,9 +502,11 @@ def relatorio_cin_view(page):
     # Botão para gerar o relatório
     generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
 
-    # Interface de relatórios
-    page.add(dia_inicio, dia_fim, generate_button)
-
+    # Adicionando os componentes à página
+    page.add(dia_inicio)
+    page.add(dia_fim)
+    page.add(generate_button)
+    page.update()
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
