@@ -489,13 +489,17 @@ def relatorio_cin_view(page):
         else:
             page.add(ft.Text("Por favor, selecione as datas de início e fim."))
 
-    # Calendário para selecionar as datas de início e fim
-    dia_inicio = ft.DatePicker(label="Data Início")  # Utilizando DatePicker corretamente
-    dia_fim = ft.DatePicker(label="Data Fim")
-    
-    # Texto explicativo
+    # Texto explicativo para as datas
     page.add(ft.Text("Selecione a Data de Início e a Data de Fim para gerar o relatório"))
-    
+
+    # Campo de seleção de data de início
+    page.add(ft.Text("Data Início:"))
+    dia_inicio = ft.DatePicker()
+
+    # Campo de seleção de data de fim
+    page.add(ft.Text("Data Fim:"))
+    dia_fim = ft.DatePicker()
+
     # Botão para gerar o relatório
     generate_button = ft.ElevatedButton("Gerar Relatório", on_click=on_click_generate_report)
 
@@ -504,7 +508,6 @@ def relatorio_cin_view(page):
     page.add(dia_fim)
     page.add(generate_button)
     page.update()  # Atualizar a interface após adicionar os componentes
-
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
