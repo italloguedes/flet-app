@@ -480,8 +480,8 @@ def relatorio_cin_view(page):
         page.update()
 
     # Componentes da view
-    data_inicio = ft.DatePicker(label="Data Início", on_change=lambda e: page.update())
-    data_fim = ft.DatePicker(label="Data Fim", on_change=lambda e: page.update())
+    data_inicio = ft.DatePicker(hint_text="Data Início", on_change=lambda e: page.update())
+    data_fim = ft.DatePicker(hint_text="Data Fim", on_change=lambda e: page.update())
     botao_gerar = ft.ElevatedButton("Gerar Relatório", on_click=gerar_relatorio)
     resultado = ft.Text("")
 
