@@ -319,6 +319,8 @@ def cadastro_atendimento_view(page):
                 cursor.close()
             if conn:
                 conn.close()
+                
+        page.update()
 
     # Campos de entrada para cadastro
     nome_field = ft.TextField(label="Nome", autofocus=True, width=300)
@@ -400,6 +402,8 @@ def cadastro_cin_view(page):
                 cursor.close()
             if conn:
                 conn.close()
+                
+        page.update()                
 
     # Campos de entrada para o cadastro de CIN
     nome_field = ft.TextField(label="Nome", width=300)
@@ -597,7 +601,6 @@ def consulta_atendimentos_view(page):
             expand=True
         )
     )
-
 
 
 def main_panel(page):
