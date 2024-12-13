@@ -284,8 +284,6 @@ def login_view(page):
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         page.clean()
-        page.add(ft.Text("Tela de Cadastro de Atendimento"))
-        page.update()
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -331,6 +329,9 @@ def cadastro_atendimento_view(page):
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
+    
+    page.clean()
+    page.update()
 
     # Adicionando os campos à página
     page.add(
