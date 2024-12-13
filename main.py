@@ -642,6 +642,7 @@ def consulta_atendimentos_view(page):
     # Botão para realizar a consulta
     consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
     page.update()
+    consulta_atendimentos_view(page)
 
     # Layout da interface
     page.add(
@@ -662,10 +663,10 @@ def consulta_atendimentos_view(page):
 def main_panel(page):
     
     def logout(e):
-        # Limpar qualquer dado de sessão ou variáveis de estado se necessário
-        return login_view(page)  # Redireciona para a tela de login
+
         page.clean()  # Limpa a interface atual
         page.update()  # Atualiza a página para garantir que a interface de login seja carregada
+        login_view(page)
 
     # Criação da barra de navegação
     menu = ft.AppBar(
