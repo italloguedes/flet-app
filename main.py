@@ -290,17 +290,18 @@ def cadastro_atendimento_view(page):
         solicitante = solicitante_field.value
         dia_atual = datetime.now()
         horario = datetime.now()
+        created_at = datetime.now()
+        updated_at = datetime.now()
 
         try:
-            # Conectar ao banco de dados
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO atendimentos (nome, cpf, email, solicitante, dia_atual, horario)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO atendimentos (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nome, cpf, email, solicitante, dia_atual, horario)
+                (nome, cpf, email, solicitante, horario, dia_atual, created_at, updated_at)
             )
             conn.commit()
 
