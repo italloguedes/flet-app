@@ -283,7 +283,11 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
+        # Limpar qualquer conteúdo anterior da interface (opcional)
         page.clean()
+        cadastro_atendimento_view(page)
+
+        # Obter os valores dos campos preenchidos
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -292,6 +296,7 @@ def cadastro_atendimento_view(page):
         horario = datetime.now()
 
         try:
+            # Conectar ao banco de dados
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
             cursor.execute(
@@ -302,13 +307,21 @@ def cadastro_atendimento_view(page):
                 (nome, cpf, email, solicitante, dia_atual, horario)
             )
             conn.commit()
+
             # Enviar e-mail de confirmação
             enviar_email(email, nome, cpf, "atendimento")
 
-            # Mostrar mensagem de sucesso
+            # Exibir mensagem de sucesso
             page.snack_bar = ft.SnackBar(ft.Text("Atendimento cadastrado com sucesso e e-mail enviado!"))
             page.snack_bar.open = True
             page.update()
+
+            # Limpar os campos após o cadastro bem-sucedido
+            nome_field.value = ''
+            cpf_field.value = ''
+            email_field.value = ''
+            solicitante_field.value = ''
+            page.update()  # Atualiza a página após a limpeza
 
         except Exception as ex:
             print(f"Erro ao cadastrar atendimento: {ex}")
@@ -316,11 +329,12 @@ def cadastro_atendimento_view(page):
             page.snack_bar.open = True
             page.update()
         finally:
+            # Fechar conexão com o banco
             if cursor:
                 cursor.close()
             if conn:
                 conn.close()
-                
+
         page.update()
 
     # Campos de entrada para cadastro
@@ -329,10 +343,11 @@ def cadastro_atendimento_view(page):
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
-    
+
+    # Adicionar os campos e o botão ao layout da página
     page.add(
         ft.Row(
-            controls=[
+            controls=[ 
                 ft.Column(
                     controls=[nome_field, cpf_field, email_field, solicitante_field, cadastrar_btn],
                     spacing=20,
@@ -343,6 +358,8 @@ def cadastro_atendimento_view(page):
             expand=True
         )
     )
+    
+    
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
         page.clean()
