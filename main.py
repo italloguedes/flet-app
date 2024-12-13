@@ -284,6 +284,7 @@ def login_view(page):
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         page.clean()
+        
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -329,6 +330,7 @@ def cadastro_atendimento_view(page):
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
+    page.update()
     
     page.add(
         ft.Row(
@@ -427,7 +429,6 @@ def cadastro_cin_view(page):
     cpf_field = ft.TextField(label="CPF", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
     
-    page.clean()
     page.update()
 
     # Adicionar campos ao layout
@@ -640,6 +641,7 @@ def consulta_atendimentos_view(page):
 
     # Botão para realizar a consulta
     consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
+    page.update()
 
     # Layout da interface
     page.add(
