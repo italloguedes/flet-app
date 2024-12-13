@@ -350,8 +350,6 @@ def cadastro_atendimento_view(page):
 def cadastro_cin_view(page):
     def cadastrar_cin(e):
         page.clean()
-        cadastro_cin_view(page)
-        page.update()
         
         nome = nome_field.value.strip()
         cpf = cpf_field.value.strip()
@@ -432,6 +430,9 @@ def cadastro_cin_view(page):
     nome_field = ft.TextField(label="Nome", width=300)
     cpf_field = ft.TextField(label="CPF", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar CIN", on_click=cadastrar_cin)
+    
+    page.clean()
+    page.update()
 
     # Adicionar campos ao layout
     page.add(
@@ -588,8 +589,6 @@ def relatorio_cin_view(page):
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
         page.clean()
-        consulta_atendimentos_view(page)
-        page.update()       
     
         consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
@@ -666,7 +665,7 @@ def main_panel(page):
     
     def logout(e):
         # Limpar qualquer dado de sessão ou variáveis de estado se necessário
-        login_view(page)  # Redireciona para a tela de login
+        return login_view(page)  # Redireciona para a tela de login
         page.clean()  # Limpa a interface atual
         page.update()  # Atualiza a página para garantir que a interface de login seja carregada
 
