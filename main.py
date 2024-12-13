@@ -466,31 +466,31 @@ def gerar_relatorio_html(dia_inicio, dia_fim):
     conn.close()
 
     # Criar conteúdo HTML
-    html_content = """
+    html_content = f"""
     <html>
     <head>
         <title>Relatório de Atendimentos</title>
         <style>
-            body {
+            body {{
                 font-family: Arial, sans-serif;
-            }
-            table {
+            }}
+            table {{
                 width: 100%;
                 border-collapse: collapse;
-            }
-            th, td {
+            }}
+            th, td {{
                 border: 1px solid #ddd;
                 padding: 8px;
                 text-align: left;
-            }
-            th {
+            }}
+            th {{
                 background-color: #f2f2f2;
-            }
+            }}
         </style>
     </head>
     <body>
         <h2>Relatório de Atendimentos</h2>
-        <p><strong>Período:</strong> {} a {}</p>
+        <p><strong>Período:</strong> {dia_inicio.strftime("%Y-%m-%d")} a {dia_fim.strftime("%Y-%m-%d")}</p>
         <table>
             <thead>
                 <tr>
@@ -500,18 +500,16 @@ def gerar_relatorio_html(dia_inicio, dia_fim):
                     <th>Data</th>
                 </tr>
             </thead>
-            <tbody>
-    """.format(dia_inicio.strftime("%Y-%m-%d"), dia_fim.strftime("%Y-%m-%d"))
+            <tbody>"""
 
     for atendimento in atendimentos:
-        html_content += """
+        html_content += f"""
             <tr>
-                <td>{}</td>
-                <td>{}</td>
-                <td>{}</td>
-                <td>{}</td>
-            </tr>
-        """.format(atendimento[0], atendimento[1], atendimento[2], atendimento[3].strftime("%Y-%m-%d"))
+                <td>{atendimento[0]}</td>
+                <td>{atendimento[1]}</td>
+                <td>{atendimento[2]}</td>
+                <td>{atendimento[3].strftime("%Y-%m-%d")}</td>
+            </tr>"""
 
     html_content += """
             </tbody>
@@ -532,6 +530,7 @@ def gerar_relatorio_html(dia_inicio, dia_fim):
     pdfkit.from_file(filepath, pdf_filepath)
 
     return pdf_filename  # Retorna o nome do arquivo PDF gerado
+
 
 def relatorio_cin_view(page):
     def on_click_generate_report(e):
