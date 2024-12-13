@@ -332,7 +332,7 @@ def cadastro_atendimento_view(page):
                 conn.close()
 
         # Chamar a tela de "Cadastro de Atendimento" novamente após limpar
-        cadastro_atendimento_view(page)
+        page.update()
 
     # Campos de entrada para cadastro
     nome_field = ft.TextField(label="Nome", autofocus=True, width=300)
