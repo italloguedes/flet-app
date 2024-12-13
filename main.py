@@ -284,7 +284,6 @@ def login_view(page):
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         page.clean()
-        
         nome = nome_field.value
         cpf = cpf_field.value
         email = email_field.value
@@ -330,7 +329,6 @@ def cadastro_atendimento_view(page):
     email_field = ft.TextField(label="Email", width=300)
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
-    page.update()
     
     page.add(
         ft.Row(
@@ -585,8 +583,6 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
-        page.clean()
-    
         consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
         if consulta:  # Verifica se o campo de busca não está vazio
@@ -635,14 +631,13 @@ def consulta_atendimentos_view(page):
 
             # Limpar o campo de entrada após a consulta
             consulta_field.value = ""
-    
+            page.update()
+
     # Campo de texto para busca
     consulta_field = ft.TextField(label="Nome ou CPF", width=300)
 
     # Botão para realizar a consulta
     consultar_btn = ft.ElevatedButton(text="Consultar", on_click=consultar_atendimentos)
-    page.update()
-    consulta_atendimentos_view(page)
 
     # Layout da interface
     page.add(
@@ -660,15 +655,14 @@ def consulta_atendimentos_view(page):
     )
 
 
+def logout(page):
+    page.clean()  # Limpa a interface atual
+    page.update()  # Atualiza a página para garantir que a interface de login seja carregada
+    login_view(page)
+
+
 def main_panel(page):
-    
-    def logout(e):
-
-        page.clean()  # Limpa a interface atual
-        page.update()  # Atualiza a página para garantir que a interface de login seja carregada
-        login_view(page)
-
-    # Criação da barra de navegação
+        
     menu = ft.AppBar(
         title=ft.Text("Gestão de Atendimentos e CIN - Sala Sensorial"),
         actions=[
