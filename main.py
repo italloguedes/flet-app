@@ -444,11 +444,11 @@ def cadastro_cin_view(page):
 PDF_DIRECTORY = "./public/relatorios/"
 
 
-def gerar_relatorio_pdf(dia_inicio, dia_fim):
+def gerar_relatorio_html(dia_inicio, dia_fim):
     # Criar o diretório caso ele não exista
     os.makedirs(PDF_DIRECTORY, exist_ok=True)
 
-    # Conectar ao Supabase
+    # Conectar ao banco de dados
     conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
 
@@ -465,40 +465,73 @@ def gerar_relatorio_pdf(dia_inicio, dia_fim):
     cursor.close()
     conn.close()
 
-    # Criar o PDF
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
+    # Criar conteúdo HTML
+    html_content = """
+    <html>
+    <head>
+        <title>Relatório de Atendimentos</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Relatório de Atendimentos</h2>
+        <p><strong>Período:</strong> {} a {}</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Solicitante</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+    """.format(dia_inicio.strftime("%Y-%m-%d"), dia_fim.strftime("%Y-%m-%d"))
 
-    # Definir título
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, txt="Relatório de Atendimentos", ln=True, align='C')
-    pdf.ln(10)
-
-    # Cabeçalho da tabela
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(50, 10, 'Nome', 1)
-    pdf.cell(50, 10, 'CPF', 1)
-    pdf.cell(50, 10, 'Solicitante', 1)
-    pdf.cell(40, 10, 'Dia', 1)
-    pdf.ln()
-
-    # Dados dos atendimentos
-    pdf.set_font("Arial", size=12)
     for atendimento in atendimentos:
-        pdf.cell(50, 10, atendimento[0], 1)
-        pdf.cell(50, 10, atendimento[1], 1)
-        pdf.cell(50, 10, atendimento[2], 1)
-        pdf.cell(40, 10, atendimento[3].strftime("%Y-%m-%d"), 1)
-        pdf.ln()
+        html_content += """
+            <tr>
+                <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
+            </tr>
+        """.format(atendimento[0], atendimento[1], atendimento[2], atendimento[3].strftime("%Y-%m-%d"))
 
-    # Salvar o PDF
-    filename = f"relatorio_{dia_inicio}_{dia_fim}.pdf"
+    html_content += """
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    # Salvar o HTML em um arquivo
+    filename = f"relatorio_{dia_inicio}_{dia_fim}.html"
     filepath = os.path.join(PDF_DIRECTORY, filename)
-    pdf.output(filepath)
+    with open(filepath, "w") as f:
+        f.write(html_content)
 
-    return filename  # Retorna o nome do arquivo
+    # Converter HTML para PDF usando pdfkit
+    pdf_filename = f"relatorio_{dia_inicio}_{dia_fim}.pdf"
+    pdf_filepath = os.path.join(PDF_DIRECTORY, pdf_filename)
+    pdfkit.from_file(filepath, pdf_filepath)
 
+    return pdf_filename  # Retorna o nome do arquivo PDF gerado
 
 def relatorio_cin_view(page):
     def on_click_generate_report(e):
@@ -514,12 +547,12 @@ def relatorio_cin_view(page):
                 page.add(ft.Text("Erro: A data de início não pode ser maior que a data de fim."))
                 return
 
-            # Gerar relatório
-            relatorio = gerar_relatorio_pdf(dia_inicio_date, dia_fim_date)
+            # Gerar relatório HTML e converter para PDF
+            relatorio = gerar_relatorio_html(dia_inicio_date, dia_fim_date)
 
-            # Adicionar botão para download
+            # Adicionar botão para download do PDF
             download_link = ft.TextButton(
-                text="Baixar Relatório",
+                text="Baixar Relatório PDF",
                 on_click=lambda _: page.launch_url(f"/relatorios/{relatorio}")
             )
             page.add(download_link)
