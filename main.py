@@ -283,10 +283,9 @@ def login_view(page):
 
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
-        # Limpar qualquer conteúdo anterior da interface (opcional)
+        # Limpar qualquer conteúdo anterior da interface
         page.clean()
-        cadastro_atendimento_view(page)
-
+        
         # Obter os valores dos campos preenchidos
         nome = nome_field.value
         cpf = cpf_field.value
@@ -335,7 +334,8 @@ def cadastro_atendimento_view(page):
             if conn:
                 conn.close()
 
-        page.update()
+        # Chamar a tela de "Cadastro de Atendimento" novamente após limpar
+        cadastro_atendimento_view(page)
 
     # Campos de entrada para cadastro
     nome_field = ft.TextField(label="Nome", autofocus=True, width=300)
@@ -358,6 +358,7 @@ def cadastro_atendimento_view(page):
             expand=True
         )
     )
+
     
     
 def cadastro_cin_view(page):
