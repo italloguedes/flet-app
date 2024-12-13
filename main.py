@@ -330,10 +330,6 @@ def cadastro_atendimento_view(page):
     solicitante_field = ft.TextField(label="Solicitante", width=300)
     cadastrar_btn = ft.ElevatedButton(text="Cadastrar", on_click=cadastrar_atendimento)
     
-    page.clean()
-    page.update()
-
-    # Adicionando os campos à página
     page.add(
         ft.Row(
             controls=[
