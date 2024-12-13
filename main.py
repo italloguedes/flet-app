@@ -284,7 +284,7 @@ def login_view(page):
 def cadastro_atendimento_view(page):
     def cadastrar_atendimento(e):
         # Limpar qualquer conteúdo anterior da interface
-        page.clean()
+        cadastro_atendimento_view(page)
         
         # Obter os valores dos campos preenchidos
         nome = nome_field.value
@@ -439,6 +439,8 @@ def cadastro_cin_view(page):
             nome_field.value = ""
             cpf_field.value = ""
             page.update()
+            
+        cadastro_cin_view(page)
 
     # Campos de entrada para o cadastro de CIN
     nome_field = ft.TextField(label="Nome", width=300)
@@ -601,6 +603,8 @@ def relatorio_cin_view(page):
 
 def consulta_atendimentos_view(page):
     def consultar_atendimentos(e):
+        consulta_atendimentos_view(page)        
+        
         consulta = consulta_field.value.strip()  # Obter e limpar espaços do input
 
         if consulta:  # Verifica se o campo de busca não está vazio
