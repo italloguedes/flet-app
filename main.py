@@ -122,7 +122,7 @@ def enviar_email(destinatario, nome, cpf, tipo_email):
             <body>
             <div class="container">
             <h1>Olá <span class="highlight">{nome}</span>, CPF - <span class="highlight">{cpf}</span>.</h1>
-            <p>Seu atendimento foi realizado com sucesso e o prazo para retirada é de <span class="highlight">45 dias</span>.</p>
+            <p>Seu atendimento foi realizado com sucesso e o prazo para retirada é de <span class="highlight">30 dias</span>.</p>
             <p>Sua CIN estará disponível nas versões digital e física. O acesso pode ser feito pelo aplicativo ou site do <a href="https://www.gov.br" target="_blank">gov.br</a>.</p>
             <div class="contact-info">
                 <p><strong>Local de retirada:</strong> Prédio da Assembleia Legislativa Anexo III, Sala Sensorial.</p>
