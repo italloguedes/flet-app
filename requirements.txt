@@ -1,5 +1,8 @@
 flet
-psycopg2-binary
 fpdf
-python-dotenv
-pdfkit
+psycopg2
+datetime
+smtplib
+email
+hashlib
+os
